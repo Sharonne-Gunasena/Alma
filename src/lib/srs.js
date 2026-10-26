@@ -7,13 +7,19 @@ export function schedule(card, rating, now = new Date()) {
   let ease = card.ease ?? 2.5;
   let reps = card.reps ?? 0;
   let interval = card.interval_days ?? 0;
+  const reviews = (card.reviews ?? 0) + 1;
 
   if (q < 3) {
-    reps = 0;
-    interval = 0;
     ease = Math.max(1.3, ease - 0.2);
     // Failed cards come back in ten minutes.
-    return { ease, reps, interval_days: 0, due: new Date(now.getTime() + 10 * 60 * 1000).toISOString() };
+    return {
+      ease,
+      reps: 0,
+      interval_days: 0,
+      reviews,
+      lapses: (card.lapses ?? 0) + 1,
+      due: new Date(now.getTime() + 10 * 60 * 1000).toISOString(),
+    };
   }
 
   reps += 1;
@@ -25,7 +31,7 @@ export function schedule(card, rating, now = new Date()) {
   if (rating === 'easy') interval = reps === 1 ? 4 : Math.round(interval * 1.3);
 
   ease = Math.max(1.3, ease + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
-  return { ease, reps, interval_days: interval, due: new Date(now.getTime() + interval * DAY).toISOString() };
+  return { ease, reps, interval_days: interval, reviews, due: new Date(now.getTime() + interval * DAY).toISOString() };
 }
 
 export function isDue(card, now = new Date()) {

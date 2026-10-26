@@ -1,65 +1,67 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useApp, useLoad, go } from '../context.js';
+import { addCards } from '../lib/data.js';
 import { isDue } from '../lib/srs.js';
+import { CARD_TYPES } from '../ai/cardTypes.js';
+import { ModuleSelect, ModuleTag } from './bits.jsx';
 
-export default function DeckView({ store, deckId, go }) {
-  const [deck, setDeck] = useState(null);
-  const [cards, setCards] = useState([]);
-  const [error, setError] = useState(null);
+export default function DeckView({ deckId }) {
+  const { db } = useApp();
+  const [data, reload, error] = useLoad(async () => {
+    const [deck, cards] = await Promise.all([db.get('decks', deckId), db.list('cards', { deck_id: deckId })]);
+    return { deck, cards: cards.sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? '')) };
+  }, [db, deckId]);
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [editing, setEditing] = useState(null);
+  const [query, setQuery] = useState('');
 
-  async function refresh() {
-    try {
-      const [d, c] = await Promise.all([store.getDeck(deckId), store.listCards(deckId)]);
-      setDeck(d);
-      setCards(c);
-    } catch (e) {
-      setError(e.message);
-    }
-  }
-
-  useEffect(() => {
-    refresh();
-  }, [deckId]);
+  if (error) return <p className="error">{error}</p>;
+  if (!data) return <p className="muted">Loading…</p>;
+  const { deck, cards } = data;
 
   async function add(e) {
     e.preventDefault();
     if (!front.trim() || !back.trim()) return;
-    await store.addCards(deckId, [{ front: front.trim(), back: back.trim() }]);
+    await addCards(db, deckId, [{ front: front.trim(), back: back.trim() }]);
     setFront('');
     setBack('');
-    refresh();
+    reload();
   }
 
   async function saveEdit() {
-    await store.updateCard(editing.id, { front: editing.front.trim(), back: editing.back.trim() });
+    await db.update('cards', editing.id, { front: editing.front.trim(), back: editing.back.trim() });
     setEditing(null);
-    refresh();
+    reload();
   }
 
   async function remove(card) {
-    await store.deleteCard(card.id);
-    refresh();
+    await db.remove('cards', card.id);
+    reload();
   }
 
   async function rename() {
     const title = prompt('Rename deck', deck.title);
     if (title?.trim()) {
-      await store.renameDeck(deckId, title.trim());
-      refresh();
+      await db.update('decks', deckId, { title: title.trim() });
+      reload();
     }
+  }
+
+  async function setModule(module_id) {
+    await db.update('decks', deckId, { module_id });
+    reload();
   }
 
   async function removeDeck() {
     if (!confirm(`Delete "${deck.title}" and all ${cards.length} cards? This cannot be undone.`)) return;
-    await store.deleteDeck(deckId);
-    go('decks');
+    await db.remove('decks', deckId);
+    go('/decks');
   }
 
   function exportDeck() {
-    const data = { title: deck.title, cards: cards.map(({ front, back }) => ({ front, back })) };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const out = { title: deck.title, cards: cards.map(({ front, back, type, topic }) => ({ front, back, type, topic })) };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
     a.download = `${deck.title.replace(/[^\w-]+/g, '_')}.json`;
@@ -67,33 +69,35 @@ export default function DeckView({ store, deckId, go }) {
     URL.revokeObjectURL(url);
   }
 
-  if (error) return <p className="error">{error}</p>;
-  if (!deck) return <p className="muted">Loading…</p>;
-
   const due = cards.filter((c) => isDue(c)).length;
+  const q = query.toLowerCase();
+  const shown = q ? cards.filter((c) => `${c.front} ${c.back} ${c.topic ?? ''}`.toLowerCase().includes(q)) : cards;
 
   return (
     <div className="stack">
-      <button className="link back" onClick={() => go('decks')}>
-        ← All decks
-      </button>
-      <div className="row between wrap">
+      <a className="back" href="#/decks">
+        ← Flashcards
+      </a>
+      <header className="page-head">
         <div>
+          <ModuleTag moduleId={deck.module_id} />
           <h1>{deck.title}</h1>
           <p className="muted">
             {cards.length} cards · {due} due now
           </p>
         </div>
         <div className="row wrap">
-          <button className="primary" disabled={!due} onClick={() => go('study', { deckId })}>
+          <a className={`button primary ${due ? '' : 'disabled'}`} href={due ? `#/decks/${deckId}/study?mode=due` : undefined}>
             Study {due ? `(${due})` : ''}
-          </button>
-          <button disabled={!cards.length} onClick={() => go('study', { deckId, practice: true })}>
+          </a>
+          <a className={`button ${cards.length ? '' : 'disabled'}`} href={cards.length ? `#/decks/${deckId}/study?mode=all` : undefined}>
             Practise all
-          </button>
-          <button onClick={() => go('create', { deckId })}>Add from material</button>
+          </a>
+          <a className="button" href={`#/create?deck=${deckId}${deck.module_id ? `&module=${deck.module_id}` : ''}`}>
+            Add from lecture
+          </a>
         </div>
-      </div>
+      </header>
 
       <form className="card stack" onSubmit={add}>
         <strong>Add a card</strong>
@@ -106,8 +110,10 @@ export default function DeckView({ store, deckId, go }) {
         </div>
       </form>
 
-      <div className="stack">
-        {cards.map((c) =>
+      {cards.length > 8 && <input placeholder="Search cards…" value={query} onChange={(e) => setQuery(e.target.value)} />}
+
+      <div className="stack tight">
+        {shown.map((c) =>
           editing?.id === c.id ? (
             <div key={c.id} className="card stack">
               <div className="two">
@@ -123,9 +129,16 @@ export default function DeckView({ store, deckId, go }) {
             </div>
           ) : (
             <div key={c.id} className="card cardrow">
-              <div className="two">
-                <div>{c.front}</div>
-                <div className="muted">{c.back}</div>
+              <div className="grow stack tight">
+                <div className="row wrap small muted">
+                  {c.type && c.type !== 'basic' && <span className="type">{CARD_TYPES[c.type] ?? c.type}</span>}
+                  {c.topic && <span>{c.topic}</span>}
+                  {c.source_page && <span>p. {c.source_page}</span>}
+                </div>
+                <div className="two">
+                  <div>{c.front}</div>
+                  <div className="muted">{c.back}</div>
+                </div>
               </div>
               <div className="row">
                 <button className="link" onClick={() => setEditing(c)}>
@@ -140,7 +153,8 @@ export default function DeckView({ store, deckId, go }) {
         )}
       </div>
 
-      <div className="row wrap">
+      <div className="card row wrap">
+        <ModuleSelect value={deck.module_id} onChange={setModule} />
         <button onClick={rename}>Rename deck</button>
         <button disabled={!cards.length} onClick={exportDeck}>
           Export JSON

@@ -1,25 +1,56 @@
-# Flashcard Study
+# CampusLoop
 
-Upload study material (PDF, Word, text or Markdown), turn it into flashcards with Claude or with a free rule-based extractor, and study with spaced repetition.
+**The student life operating system.** Timetable, deadlines, an adaptive study planner and AI-built flashcards from your own lecture slides, all in one place.
 
-- **Accounts and sync:** Supabase (email and password). There's also a guest mode that saves to the browser only.
-- **AI generation:** each user's own Anthropic API key, stored only in their browser.
-- **Hosting:** GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main`.
+Live: https://sharonne-gunasena.github.io/study-flashcards/
+
+## Features
+
+- **Timetable import:** upload a calendar export (.ics) from Google Calendar, Outlook or Apple Calendar. Recurring classes collapse into weekly slots, and a module is created for each module code (e.g. `COMP10110: Computer Programming I (Lecture)`).
+- **Adaptive study planner:** fits study sessions into your study hours around your classes, using a *least-slack-first* rule: each session goes to the task with the least spare time before its deadline. The plan rebuilds every time it's shown, so missed sessions roll forward, and it warns when work no longer fits before a deadline. See [`src/lib/planner.js`](src/lib/planner.js).
+- **Lecture → flashcards + study guide:** a multi-step process instead of one big prompt ([`src/ai/engine.js`](src/ai/engine.js)):
+  1. Splits the lecture into sections, keeping page numbers.
+  2. Per section, writes a summary, key terms and varied card types (definition, why/how, fill-the-blank, compare, steps, worked problem, code). With vision models it also reads the slide images, so diagrams and equations aren't lost.
+  3. Optionally runs a review pass that fixes vague, ambiguous or unsupported cards.
+  4. Checks the cards in code: duplicates are removed, and answers not found in the notes are flagged.
+- **Study mode:** spaced repetition (SM-2), with AI-graded typed answers, "Explain this", and "Show in my notes" to jump to the source page.
+- **Weak-topic tracking:** the dashboard surfaces the topics with the lowest recall.
+- **Free AI:** each user brings their own key. Google Gemini and Groq both offer free keys, and Claude is an optional paid upgrade. Keys stay in the browser.
+- **Accounts:** Supabase auth and Postgres with row-level security, or a guest mode stored in the browser.
+
+## Tech
+
+React 19 + Vite · Supabase (Postgres, Auth, Storage, RLS) · pdf.js, mammoth, ical.js · Gemini / Groq / Anthropic SDKs · zod · Vitest · GitHub Actions → GitHub Pages
+
+```
+src/
+  ai/          providers.js (one interface over Gemini/Groq/Claude), engine.js (flashcard process), quality.js (code checks)
+  lib/         db.js (cloud + guest storage), planner.js, ics.js, srs.js, extract.js, time.js
+  components/  pages (Dashboard, Planner, Timetable, Modules, Decks, Create, Study, Guide, Settings, Onboarding)
+supabase/migrations/  database schema, run in order
+```
 
 ## Run locally
 
 ```bash
 npm install
 npm run dev
+npm test
 ```
 
-## One-time Supabase setup
+## Database setup
 
-1. In the Supabase dashboard, open **SQL Editor → New query**, paste [`supabase/schema.sql`](supabase/schema.sql) and click **Run**.
-2. Under **Authentication → URL Configuration**, set **Site URL** to the GitHub Pages address, and add it under **Redirect URLs** too, so that email confirmation links open the live site.
+In the Supabase dashboard, open **SQL Editor → New query** and run each file in [`supabase/migrations/`](supabase/migrations) in order. Each file is safe to run again.
 
-The project URL and anon key are in `src/config.js`. The anon key is designed to be public, and row-level security restricts each user to their own data.
+Under **Authentication → URL Configuration**, set the Site URL and Redirect URLs to the live address.
 
 ## Deploy
 
-Push to `main` on GitHub. Then, in the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
+Every push to `main` builds, tests and deploys to GitHub Pages ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)).
+
+## Roadmap
+
+- [x] Planner, timetable, modules, AI flashcards and study guides
+- [ ] Module communities: shared decks and resources rated by classmates, study-group matching
+- [ ] Student marketplace (textbooks, calculators, equipment), linked to modules
+- [ ] Notifications and exam-countdown review mode

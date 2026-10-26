@@ -28,8 +28,13 @@ export default function Auth({ onGuest }) {
 
   return (
     <div className="auth">
-      <h1>🗂️ Flashcard Study</h1>
-      <p className="muted">Upload your notes, turn them into flashcards, and study with spaced repetition.</p>
+      <h1>
+        <span className="logo-mark">◎</span> CampusLoop
+      </h1>
+      <p className="muted">
+        Your timetable, deadlines and study in one place. Turn lecture slides into flashcards and study guides, and get a study plan that
+        adapts when life happens.
+      </p>
 
       <form className="card stack" onSubmit={submit}>
         <div className="tabs">

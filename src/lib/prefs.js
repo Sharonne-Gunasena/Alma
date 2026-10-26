@@ -1,6 +1,6 @@
-// Per-browser preferences. Storage can be unavailable (private mode, blocked
-// site data), so every access is guarded and falls back to defaults.
-import { DEFAULT_MODEL } from '../config.js';
+// Per-browser preferences. API keys live here and never in the database.
+// Storage can be unavailable (private mode, blocked site data), so every
+// access is guarded and falls back to defaults.
 
 function get(key, fallback = '') {
   try {
@@ -20,10 +20,12 @@ function set(key, value) {
 }
 
 export const prefs = {
-  getApiKey: () => get('sf_anthropic_key'),
-  setApiKey: (v) => set('sf_anthropic_key', v.trim()),
-  getModel: () => get('sf_model', DEFAULT_MODEL),
-  setModel: (v) => set('sf_model', v),
+  getProvider: () => get('cl_provider', 'gemini'),
+  setProvider: (v) => set('cl_provider', v),
+  getKey: (provider) => get(`cl_key_${provider}`, provider === 'anthropic' ? get('sf_anthropic_key') : ''),
+  setKey: (provider, v) => set(`cl_key_${provider}`, v.trim()),
+  getModel: (provider) => get(`cl_model_${provider}`),
+  setModel: (provider, v) => set(`cl_model_${provider}`, v),
   isGuest: () => get('sf_guest') === '1',
   setGuest: (on) => set('sf_guest', on ? '1' : ''),
 };

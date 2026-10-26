@@ -1,18 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase.js';
-import { localStore, supabaseStore } from './lib/store.js';
+import { cloudDb, localDb } from './lib/db.js';
+import { listModules } from './lib/data.js';
 import { prefs } from './lib/prefs.js';
+import { AppContext, go, useHashRoute } from './context.js';
 import Auth from './components/Auth.jsx';
-import DeckList from './components/DeckList.jsx';
+import Shell from './components/Shell.jsx';
+import Onboarding from './components/Onboarding.jsx';
+import Dashboard from './components/Dashboard.jsx';
+import Planner from './components/Planner.jsx';
+import Timetable from './components/Timetable.jsx';
+import Modules from './components/Modules.jsx';
+import ModuleView from './components/ModuleView.jsx';
+import Decks from './components/Decks.jsx';
 import DeckView from './components/DeckView.jsx';
-import CreateFromMaterial from './components/CreateFromMaterial.jsx';
+import Create from './components/Create.jsx';
 import Study from './components/Study.jsx';
+import Guide from './components/Guide.jsx';
 import Settings from './components/Settings.jsx';
 
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = still checking
   const [guest, setGuest] = useState(prefs.isGuest());
-  const [view, setView] = useState({ name: 'decks' });
+  const [profile, setProfile] = useState(undefined);
+  const [modules, setModules] = useState([]);
+  const route = useHashRoute();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -21,11 +33,21 @@ export default function App() {
   }, []);
 
   const user = session?.user;
-  const store = useMemo(() => (user ? supabaseStore(user) : guest ? localStore() : null), [user, guest]);
+  const db = useMemo(() => (user ? cloudDb(user) : guest ? localDb() : null), [user, guest]);
+
+  const reloadModules = () => db && listModules(db).then(setModules).catch(() => setModules([]));
+  const reloadProfile = () => db && db.getProfile().then((p) => setProfile(p ?? null)).catch(() => setProfile(null));
+
+  useEffect(() => {
+    setProfile(undefined);
+    if (!db) return;
+    reloadProfile();
+    reloadModules();
+  }, [db]);
 
   if (session === undefined) return <div className="center muted">Loading…</div>;
 
-  if (!store) {
+  if (!db)
     return (
       <Auth
         onGuest={() => {
@@ -34,62 +56,52 @@ export default function App() {
         }}
       />
     );
-  }
-
-  const go = (name, extra = {}) => setView({ name, ...extra });
 
   async function signOut() {
     if (user) await supabase.auth.signOut();
     prefs.setGuest(false);
     setGuest(false);
-    go('decks');
+    go('/');
   }
 
-  let page;
-  switch (view.name) {
-    case 'deck':
-      page = <DeckView store={store} deckId={view.deckId} go={go} />;
-      break;
-    case 'create':
-      page = <CreateFromMaterial store={store} go={go} initialDeckId={view.deckId} />;
-      break;
-    case 'study':
-      page = <Study store={store} deckId={view.deckId} practice={view.practice} go={go} />;
-      break;
-    case 'settings':
-      page = <Settings go={go} />;
-      break;
-    default:
-      page = <DeckList store={store} go={go} />;
-  }
+  const ctx = { db, user, profile, modules, reloadModules, reloadProfile, signOut, moduleById: (id) => modules.find((m) => m.id === id) };
+
+  if (profile === undefined) return <div className="center muted">Loading…</div>;
+  if (!profile?.onboarded)
+    return (
+      <AppContext.Provider value={ctx}>
+        <Onboarding />
+      </AppContext.Provider>
+    );
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <button className="brand" onClick={() => go('decks')}>
-          🗂️ Flashcard Study
-        </button>
-        <nav>
-          <button className="link" onClick={() => go('create')}>
-            New from material
-          </button>
-          <button className="link" onClick={() => go('settings')}>
-            Settings
-          </button>
-          <span className="who" title={user ? user.email : 'Saved in this browser only'}>
-            {user ? user.email : 'Guest'}
-          </span>
-          <button className="link" onClick={signOut}>
-            {user ? 'Sign out' : 'Exit guest mode'}
-          </button>
-        </nav>
-      </header>
-      {store.kind === 'local' && (
-        <div className="banner">
-          Guest mode: your decks are saved in this browser only. Create an account to keep them across devices.
-        </div>
-      )}
-      <main>{page}</main>
-    </div>
+    <AppContext.Provider value={ctx}>
+      <Shell route={route}>{page(route)}</Shell>
+    </AppContext.Provider>
   );
+}
+
+function page({ parts, query }) {
+  const [section, id, sub] = parts;
+  switch (section) {
+    case 'planner':
+      return <Planner />;
+    case 'timetable':
+      return <Timetable />;
+    case 'modules':
+      return id ? <ModuleView key={id} moduleId={id} /> : <Modules />;
+    case 'decks':
+      if (id && sub === 'study') return <Study key={id + query} deckId={id} mode={query.get('mode')} topic={query.get('topic')} />;
+      return id ? <DeckView key={id} deckId={id} /> : <Decks />;
+    case 'study':
+      return <Study key={'all' + query} mode={query.get('mode')} moduleId={query.get('module')} />;
+    case 'create':
+      return <Create moduleId={query.get('module')} deckId={query.get('deck')} />;
+    case 'guides':
+      return <Guide key={id} materialId={id} />;
+    case 'settings':
+      return <Settings />;
+    default:
+      return <Dashboard />;
+  }
 }
