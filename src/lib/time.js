@@ -48,6 +48,17 @@ export const formatHours = (minutes) => {
   return h && m ? `${h}h ${m}m` : h ? `${h}h` : `${m}m`;
 };
 
+// Teaching week number, counted from the Monday of the first timetabled class.
+export function semesterWeek(classEvents, now = new Date()) {
+  const starts = classEvents.map((e) => e.start_date).filter(Boolean).sort();
+  if (!starts.length) return null;
+  const [y, m, d] = starts[0].split('-').map(Number);
+  const first = new Date(y, m - 1, d);
+  first.setDate(first.getDate() - ((first.getDay() + 6) % 7)); // back to Monday
+  const week = Math.floor((startOfDay(now) - first) / (7 * DAY_MS)) + 1;
+  return week >= 1 && week <= 20 ? week : null;
+}
+
 // Is a weekly class event running on this date?
 export function eventOn(event, date) {
   if (event.weekday !== date.getDay()) return false;

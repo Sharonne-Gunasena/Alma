@@ -20,7 +20,9 @@ Live: https://sharonne-gunasena.github.io/study-flashcards/
 
 ## Tech
 
-React 19 + Vite · Supabase (Postgres, Auth, Storage, RLS) · pdf.js, mammoth, ical.js · Gemini / Groq / Anthropic SDKs · zod · Vitest · GitHub Actions → GitHub Pages
+React 19 + Vite · Tailwind CSS v4 · Radix UI primitives · Motion · Lucide icons · Geist type · Supabase (Postgres, Auth, Storage, RLS) · pdf.js, mammoth, ical.js · Gemini / Groq / Anthropic SDKs · zod · Vitest · GitHub Actions → GitHub Pages
+
+The UI is a small in-house design system in [`src/ui/`](src/ui): buttons, cards, dialogs and side sheets, form fields, progress rings and a week calendar ([`TimeGrid`](src/ui/TimeGrid.jsx)) where you drag to block out busy time. Pages load on demand with `React.lazy`.
 
 ```
 src/

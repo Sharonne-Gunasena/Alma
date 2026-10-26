@@ -7,12 +7,13 @@ import { isDue } from './srs.js';
 export function usePlan() {
   const { db, profile } = useApp();
   const [data, reload, error] = useLoad(async () => {
-    const [assignments, classEvents, cards] = await Promise.all([
+    const [assignments, classEvents, cards, decks] = await Promise.all([
       db.list('assignments'),
       db.list('class_events'),
       db.list('cards', {}, 'id, deck_id, due, topic, reviews, lapses'),
+      db.list('decks', {}, 'id, module_id, title'),
     ]);
-    return { assignments, classEvents, cards };
+    return { assignments, classEvents, cards, decks };
   }, [db]);
 
   const studyPrefs = { ...DEFAULT_STUDY_PREFS, ...(profile?.study_prefs ?? {}) };

@@ -3,11 +3,19 @@ import { isDue } from './srs.js';
 
 const byCreated = (a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '');
 
+// A card counts as "mastered" once its review interval reaches three weeks.
+export const MASTERED_DAYS = 21;
+
 export async function listDecks(db, filters = {}) {
-  const [decks, cards] = await Promise.all([db.list('decks', filters), db.list('cards', {}, 'id, deck_id, due')]);
+  const [decks, cards] = await Promise.all([db.list('decks', filters), db.list('cards', {}, 'id, deck_id, due, interval_days')]);
   return decks.sort(byCreated).map((d) => {
     const own = cards.filter((c) => c.deck_id === d.id);
-    return { ...d, card_count: own.length, due_count: own.filter((c) => isDue(c)).length };
+    return {
+      ...d,
+      card_count: own.length,
+      due_count: own.filter((c) => isDue(c)).length,
+      mastered_count: own.filter((c) => (c.interval_days ?? 0) >= MASTERED_DAYS).length,
+    };
   });
 }
 
