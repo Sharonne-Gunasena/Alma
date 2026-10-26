@@ -77,6 +77,7 @@ function ProviderKey({ provider }) {
     try {
       const list = await listModels(provider, key.trim());
       setModels(list);
+      prefs.setModels(provider, list);
       if (!list.includes(model)) {
         setModel(list[0]);
         prefs.setModel(provider, list[0]);

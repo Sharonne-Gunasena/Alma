@@ -48,6 +48,33 @@ describe('buildStudySet', () => {
     expect(cards[0].front).toBe('In C, what is a pointer?');
   });
 
+  it('keeps finished sections when the provider fails partway', async () => {
+    const { generateJSON } = await import('./providers.js');
+    calls.length = 0;
+    const normal = generateJSON.getMockImplementation();
+    generateJSON.mockImplementationOnce(normal).mockImplementationOnce(async () => {
+      throw new Error('Google Gemini is overloaded right now.');
+    });
+    const set = await buildStudySet({ ai, title: 'Pointers', pages });
+    expect(set.guide.sections.map((s) => s.pages)).toEqual([[1]]);
+    expect(set.skipped).toEqual([2]);
+    expect(set.stopReason).toMatch(/overloaded/);
+  });
+
+  it('fails outright if no section could be processed', async () => {
+    const { generateJSON } = await import('./providers.js');
+    generateJSON.mockImplementationOnce(async () => {
+      throw new Error('Google Gemini is overloaded right now.');
+    });
+    await expect(buildStudySet({ ai, title: 'Pointers', pages })).rejects.toThrow(/overloaded/);
+  });
+
+  it('tells the model which topics an earlier run already covered', async () => {
+    calls.length = 0;
+    await buildStudySet({ ai, title: 'Pointers', pages: [pages[1]], previousTopics: ['Pointer basics'] });
+    expect(calls[0].text).toContain('Pointer basics');
+  });
+
   it('refuses empty documents with a helpful message', async () => {
     await expect(buildStudySet({ ai, title: 'Empty', pages: [{ page: 1, text: '' }] })).rejects.toThrow(/No readable text/);
   });

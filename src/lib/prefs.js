@@ -26,6 +26,15 @@ export const prefs = {
   setKey: (provider, v) => set(`cl_key_${provider}`, v.trim()),
   getModel: (provider) => get(`cl_model_${provider}`),
   setModel: (provider, v) => set(`cl_model_${provider}`, v),
+  // The models a key can use, as listed by "Save & test" in Settings.
+  getModels: (provider) => {
+    try {
+      return JSON.parse(get(`cl_models_${provider}`, '[]'));
+    } catch {
+      return [];
+    }
+  },
+  setModels: (provider, list) => set(`cl_models_${provider}`, JSON.stringify(list)),
   isGuest: () => get('sf_guest') === '1',
   setGuest: (on) => set('sf_guest', on ? '1' : ''),
 };

@@ -5,8 +5,11 @@ import { addCards, deleteMaterial, listDecks, materialPages, saveMaterial } from
 import { generateFromRules } from '../lib/rules.js';
 import { activeAI } from '../ai/providers.js';
 import { CARD_TYPES } from '../ai/cardTypes.js';
+import { dedupe } from '../ai/quality.js';
 import { MAX_UPLOAD_BYTES } from '../config.js';
 import { ModuleSelect } from './bits.jsx';
+
+const pageRange = (pages) => (pages.length > 1 ? `${pages[0]}–${pages[pages.length - 1]}` : `${pages[0]}`);
 
 export default function Create({ moduleId: initialModule, deckId: initialDeck }) {
   const { db } = useApp();
@@ -82,20 +85,44 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
         if (!cards.length) throw new Error('No "term: definition" lines or headings found. Try AI generation instead.');
         setResult({ cards: cards.map((c) => ({ ...c, keep: true })), guide: null });
       } else {
-        const { buildStudySet } = await import('../ai/engine.js');
-        const set = await buildStudySet({
-          ai,
-          title: title || 'Lecture',
-          pages,
-          pdf: doc?.pdf,
-          focus,
-          thorough,
-          useImages,
-          onProgress: setProgress,
-        });
-        if (!set.cards.length) throw new Error('No cards came back. Try another model or turn on "Read slide images".');
-        setResult({ cards: set.cards.map((c) => ({ ...c, keep: c.flags.length === 0 || !c.flags.some((f) => f.startsWith('Answer not')) })), guide: set.guide });
+        await runAI(pages, null);
       }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProgress(null);
+    }
+  }
+
+  // Runs the AI engine on some pages and merges the output with any earlier
+  // partial result, so a busy provider never throws away finished sections.
+  async function runAI(todo, previous) {
+    const { buildStudySet } = await import('../ai/engine.js');
+    const set = await buildStudySet({
+      ai,
+      title: title || 'Lecture',
+      pages: todo,
+      pdf: doc?.pdf,
+      focus,
+      thorough,
+      useImages,
+      previousTopics: previous?.guide.sections.map((s) => s.topic) ?? [],
+      onProgress: setProgress,
+    });
+    const fresh = set.cards.map((c) => ({ ...c, keep: !c.flags.some((f) => f.startsWith('Answer not')) }));
+    const cards = previous ? dedupe([...previous.cards, ...fresh]) : fresh;
+    if (!cards.length) throw new Error('No cards came back. Try another model or turn on "Read slide images".');
+    const sections = [...(previous?.guide.sections ?? []), ...set.guide.sections].sort((a, b) => a.pages[0] - b.pages[0]);
+    setResult({ cards, guide: { ...set.guide, sections }, skipped: set.skipped, stopReason: set.stopReason });
+  }
+
+  async function continueRemaining() {
+    setError(null);
+    try {
+      await runAI(
+        pages.filter((p) => result.skipped.includes(p.page)),
+        result,
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -249,6 +276,19 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
 
       {result && (
         <>
+          {result.skipped?.length > 0 && (
+            <div className="alert stack tight">
+              <p>
+                ⚠️ Stopped before page{result.skipped.length > 1 ? 's' : ''} {pageRange(result.skipped)}. {result.stopReason}
+              </p>
+              <p className="small">The cards below come from the pages that finished. Save them now, or carry on with the rest.</p>
+              <div>
+                <button className="primary" disabled={!!progress} onClick={continueRemaining}>
+                  Continue with the remaining pages
+                </button>
+              </div>
+            </div>
+          )}
           {result.guide && (
             <section className="card stack tight">
               <strong>Study guide preview</strong>

@@ -50,7 +50,10 @@ Every card's page is the page number (from the [Page n] markers) where the idea 
 
 const REVIEW_SYSTEM = `You review flashcards written from lecture material. For each card: fix it if it is vague, ambiguous, depends on context, tests trivia, has a wrong or unsupported answer, or covers more than one idea (split those). Drop cards about admin, titles or trivia. Keep good cards unchanged. If an important idea in the material has no card, add one. Use only the material provided.`;
 
-export async function buildStudySet({ ai, title, pages, pdf, focus, thorough, useImages, onProgress = () => {} }) {
+// If the provider stays unavailable partway through, the finished sections are
+// returned with `skipped` listing the pages still to do, so nothing is lost and
+// the rest can be retried (pass the earlier topics as previousTopics).
+export async function buildStudySet({ ai, title, pages, pdf, focus, thorough, useImages, previousTopics = [], onProgress = () => {} }) {
   const usable = pages.filter((p) => p.text.trim().length > 20 || (useImages && pdf));
   if (!usable.length) throw new Error('No readable text found. If this is a scanned PDF, use Gemini or Claude with "Read slide images" turned on.');
 
@@ -60,9 +63,13 @@ export async function buildStudySet({ ai, title, pages, pdf, focus, thorough, us
   let step = 0;
   const guide = [];
   let cards = [];
+  let skipped = [];
+  let stopError = null;
 
-  for (const section of sections) {
-    onProgress({ step: ++step, steps, label: `Reading pages ${range(section.pages)}…` });
+  for (const [index, section] of sections.entries()) {
+    const label = `Reading pages ${range(section.pages)}…`;
+    onProgress({ step: ++step, steps, label });
+    const covered = [...previousTopics, ...guide.map((g) => g.topic)];
     const parts = [{ text: `Lecture: ${title}\n\n${section.text}` }];
     if (withImages) {
       for (const page of section.pages.slice(0, 10)) {
@@ -73,7 +80,7 @@ export async function buildStudySet({ ai, title, pages, pdf, focus, thorough, us
     parts.push({
       text: [
         `Write ${min}–${max} flashcards for this section, mixing card types to suit the content.`,
-        guide.length ? `Topics already covered (don't repeat them): ${guide.map((g) => g.topic).join('; ')}.` : '',
+        covered.length ? `Topics already covered (don't repeat them): ${covered.join('; ')}.` : '',
         focus ? `The student asked to focus on: ${focus}` : '',
         'Also give the section a short topic name, a 2–4 sentence summary for a study guide, and its key terms.',
       ]
@@ -81,29 +88,50 @@ export async function buildStudySet({ ai, title, pages, pdf, focus, thorough, us
         .join('\n'),
     });
 
-    const result = await generateJSON(ai, { system: SYSTEM, parts, schema: SectionSchema });
+    const onRetry = (text) => ({ message }) => onProgress({ step, steps, label: `${text} ${message}` });
+
+    let result;
+    try {
+      result = await generateJSON(ai, { system: SYSTEM, parts, schema: SectionSchema, onRetry: onRetry(label) });
+    } catch (err) {
+      stopError = err;
+      skipped = [...new Set(sections.slice(index).flatMap((s) => s.pages))];
+      break;
+    }
     let sectionCards = result.cards;
 
     if (thorough && sectionCards.length) {
-      onProgress({ step: ++step, steps, label: `Checking cards for pages ${range(section.pages)}…` });
-      const review = await generateJSON(ai, {
-        system: REVIEW_SYSTEM,
-        parts: [
-          { text: `Material:\n${section.text}` },
-          { text: `Cards to review:\n${JSON.stringify(sectionCards, null, 1)}` },
-          { text: 'Return the improved list of cards.' },
-        ],
-        schema: ReviewSchema,
-      });
-      if (review.cards.length) sectionCards = review.cards;
+      const checking = `Checking cards for pages ${range(section.pages)}…`;
+      onProgress({ step: ++step, steps, label: checking });
+      try {
+        const review = await generateJSON(ai, {
+          system: REVIEW_SYSTEM,
+          parts: [
+            { text: `Material:\n${section.text}` },
+            { text: `Cards to review:\n${JSON.stringify(sectionCards, null, 1)}` },
+            { text: 'Return the improved list of cards.' },
+          ],
+          schema: ReviewSchema,
+          onRetry: onRetry(checking),
+        });
+        if (review.cards.length) sectionCards = review.cards;
+      } catch {
+        // The review pass is an improvement, not a requirement: keep the unreviewed cards.
+      }
     }
 
     guide.push({ topic: result.topic, summary: result.summary, key_terms: result.key_terms, pages: section.pages });
     cards.push(...checkCards(sectionCards, section.text).map((c) => ({ ...c, topic: result.topic })));
   }
 
+  if (!guide.length) throw stopError;
   cards = dedupe(cards);
-  return { cards, guide: { title, sections: guide, generated_at: new Date().toISOString(), model: ai.model } };
+  return {
+    cards,
+    guide: { title, sections: guide, generated_at: new Date().toISOString(), model: ai.model },
+    skipped,
+    stopReason: stopError?.message ?? null,
+  };
 }
 
 function range(pages) {

@@ -12,6 +12,8 @@ export const PROVIDERS = {
     keyUrl: 'https://aistudio.google.com/apikey',
     keyHelp: 'Free: sign in with a Google account and click "Create API key". Google may use free-tier data to improve its products.',
     defaultModel: 'gemini-flash-latest',
+    // Tried in order when the chosen model is overloaded or rate-limited.
+    fallbackModels: ['gemini-flash-lite-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
     // Free tiers have small per-minute limits, so keep each request modest.
     chunkChars: 9000,
   },
@@ -23,6 +25,7 @@ export const PROVIDERS = {
     keyHelp: 'Free: sign up and create a key. Very fast, but reads text only (no slide images).',
     defaultModel: 'llama-3.3-70b-versatile',
     preferredModels: ['openai/gpt-oss-120b', 'llama-3.3-70b-versatile', 'qwen/qwen3-32b'],
+    fallbackModels: ['llama-3.3-70b-versatile', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant'],
     chunkChars: 5000,
   },
   anthropic: {
@@ -49,43 +52,96 @@ export function activeAI() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function statusOf(err) {
-  return err?.status ?? err?.code ?? err?.error?.code;
+// Waits between retries when a provider is busy. Exported so tests can shorten them.
+export const RETRY = { delaysMs: [4000, 12000, 25000, 40000] };
+const MAX_ATTEMPTS = 6;
+// Rate limits and "overloaded" errors are temporary, so they're worth retrying.
+const TEMPORARY = new Set([429, 500, 502, 503, 504, 529]);
+
+// SDKs report the HTTP status in different places; Gemini sometimes only in the message JSON.
+export function statusOf(err) {
+  const s = err?.status ?? err?.code ?? err?.error?.code;
+  if (typeof s === 'number') return s;
+  const m = String(err?.message ?? '').match(/"code"\s*:\s*(\d{3})/);
+  return m ? Number(m[1]) : undefined;
 }
 
 function friendly(err, info) {
   const status = statusOf(err);
   if (status === 401 || status === 403) return new AIError(`${info.label} rejected your API key. Check it in Settings.`);
   if (status === 429) return new AIError(`${info.label}'s free limit was reached. Wait a minute and try again, or switch provider in Settings.`);
+  if (TEMPORARY.has(status))
+    return new AIError(`${info.label} is overloaded right now. This is common on free tiers at busy times. Wait a few minutes and try again, or switch provider in Settings.`);
+  if (status === 404) return new AIError(`${info.label} couldn't find that model. Pick another one in Settings.`);
   if (status === 400 && /api key/i.test(err.message)) return new AIError(`${info.label} rejected your API key. Check it in Settings.`);
   if (err instanceof TypeError) return new AIError(`Could not reach ${info.label}. Check your internet connection.`);
   return new AIError(`${info.label} error: ${err.message}`);
 }
 
+// The chosen model first, then the provider's backups. If Settings has listed
+// the models this key can use, backups the key can't use are skipped.
+function modelsToTry(ai) {
+  const known = prefs.getModels(ai.provider);
+  const backups = (ai.info.fallbackModels ?? []).filter((m) => m !== ai.model && (!known.length || known.includes(m)));
+  // Gemini model names change often, so also use any other Flash model the key lists.
+  if (ai.provider === 'gemini')
+    for (const m of known) if (/flash/.test(m) && m !== ai.model && !backups.includes(m) && backups.length < 4) backups.push(m);
+  return [ai.model, ...backups];
+}
+
 // parts: [{ text } | { image: { mime, data } }]
-export async function generateJSON(ai, { system, parts, schema, maxTokens = 8000 }) {
+// onRetry({ message }) is called while waiting on a busy provider, for progress messages.
+export async function generateJSON(ai, { system, parts, schema, maxTokens = 8000, onRetry = () => {} }) {
   const jsonSchema = z.toJSONSchema(schema);
   delete jsonSchema.$schema;
   const call = CALLERS[ai.provider];
+  const models = modelsToTry(ai);
 
-  let lastProblem = null;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  let modelIndex = 0;
+  let busyCount = 0;
+  let waits = 0;
+  let badFormat = null;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const model = models[modelIndex];
     let raw;
     try {
-      const extra = lastProblem ? [{ text: `Your previous reply was invalid (${lastProblem}). Reply again with valid JSON only.` }] : [];
-      raw = await call(ai, { system, parts: [...parts, ...extra], jsonSchema, schema, maxTokens });
+      const extra = badFormat ? [{ text: `Your previous reply was invalid (${badFormat}). Reply again with valid JSON only.` }] : [];
+      raw = await call({ ...ai, model }, { system, parts: [...parts, ...extra], jsonSchema, schema, maxTokens });
     } catch (err) {
-      // Free tiers rate-limit per minute; back off and retry a few times.
-      if (statusOf(err) === 429 && attempt < 3) {
-        await sleep(15000 * (attempt + 1));
+      if (err instanceof AIError) throw err;
+      const status = statusOf(err);
+      lastError = err;
+      badFormat = null;
+      const hasBackup = modelIndex < models.length - 1;
+
+      // A backup model this key can't use: move straight on to the next one.
+      if (modelIndex > 0 && status === 404 && hasBackup) {
+        modelIndex++;
         continue;
       }
-      throw err instanceof AIError ? err : friendly(err, ai.info);
+      if (!TEMPORARY.has(status)) throw friendly(err, ai.info);
+
+      // Busy: retry once on the same model, then switch to a backup.
+      busyCount++;
+      if (busyCount >= 2 && hasBackup) {
+        modelIndex++;
+        busyCount = 0;
+        onRetry({ message: `${model} is busy. Switching to ${models[modelIndex]}…` });
+        continue;
+      }
+      const wait = RETRY.delaysMs[Math.min(waits++, RETRY.delaysMs.length - 1)];
+      onRetry({ message: `${ai.info.label} is busy. Trying again in ${Math.round(wait / 1000)}s…` });
+      await sleep(wait);
+      continue;
     }
     const result = schema.safeParse(typeof raw === 'string' ? safeJson(raw) : raw);
     if (result.success) return result.data;
-    lastProblem = result.error.issues[0]?.message ?? 'did not match the format';
+    lastError = null;
+    badFormat = result.error.issues[0]?.message ?? 'did not match the format';
   }
+  if (lastError) throw friendly(lastError, ai.info);
   throw new AIError(`${ai.info.label} kept returning badly formatted answers. Try again or pick another model.`);
 }
 
