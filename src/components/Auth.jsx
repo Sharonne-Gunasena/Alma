@@ -20,6 +20,14 @@ const CHIPS = [
   { dot: 'bg-amber-400', title: 'Assignment due Thu', sub: '3h planned before then', className: 'bottom-[18%] right-[6%]' },
 ];
 
+function friendlyAuthError(message) {
+  if (/rate limit/i.test(message))
+    return "Too many sign-up emails have been sent in the last hour, so this one couldn't go out. Please try again later, or use \"Try it without an account\" for now.";
+  if (/invalid login credentials/i.test(message)) return 'That email and password don’t match. Check them, or create an account.';
+  if (/email not confirmed/i.test(message)) return 'Please confirm your email first. Check your inbox (and spam) for the link.';
+  return message;
+}
+
 export default function Auth({ onGuest }) {
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
@@ -40,7 +48,7 @@ export default function Auth({ onGuest }) {
             options: { emailRedirectTo: window.location.origin + window.location.pathname },
           });
     setBusy(false);
-    if (error) setMessage({ kind: 'error', text: error.message });
+    if (error) setMessage({ kind: 'error', text: friendlyAuthError(error.message) });
     else if (mode === 'signup' && !data.session) setMessage({ kind: 'ok', text: 'Check your email for a confirmation link, then sign in.' });
   }
 

@@ -406,8 +406,8 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
                           ))}
                         </div>
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                          <Textarea className="min-h-16 text-[13px]" value={c.front} onChange={(e) => update(i, { front: e.target.value })} />
-                          <Textarea className="min-h-16 text-[13px]" value={c.back} onChange={(e) => update(i, { back: e.target.value })} />
+                          <Textarea className="min-h-16 sm:text-[13px]" value={c.front} onChange={(e) => update(i, { front: e.target.value })} />
+                          <Textarea className="min-h-16 sm:text-[13px]" value={c.back} onChange={(e) => update(i, { back: e.target.value })} />
                         </div>
                       </div>
                     </div>

@@ -3,8 +3,9 @@ import { ChevronDown } from 'lucide-react';
 import { cn } from './cn.js';
 import { useApp } from '../context.js';
 
+// 16px text on phones: iOS Safari zooms the page into any smaller input when it's tapped.
 const field =
-  'w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-sm text-fg shadow-[0_1px_0_rgb(15_23_42/0.02)] outline-none transition-colors placeholder:text-muted/70 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-60';
+  'w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-base sm:text-sm text-fg shadow-[0_1px_0_rgb(15_23_42/0.02)] outline-none transition-colors placeholder:text-muted/70 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-60';
 
 export function Field({ label, hint, children, className }) {
   return (

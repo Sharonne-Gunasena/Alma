@@ -239,7 +239,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                         value={answer}
                         onChange={(e) => setAnswer(e.target.value)}
                         placeholder="Type your answer…"
-                        className="min-h-24 w-full resize-y rounded-2xl border border-line bg-subtle px-4 py-3 text-[15px] outline-none transition-colors focus:border-indigo-400 focus:bg-card"
+                        className="min-h-24 w-full resize-y rounded-2xl border border-line bg-subtle px-4 py-3 text-base outline-none transition-colors focus:border-indigo-400 focus:bg-card"
                       />
                       <div className="flex flex-wrap items-center justify-center gap-2">
                         <Button variant="primary" onClick={check} disabled={busy}>
