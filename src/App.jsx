@@ -22,6 +22,8 @@ const DeckView = lazy(() => import('./components/DeckView.jsx'));
 const Create = lazy(() => import('./components/Create.jsx'));
 const Study = lazy(() => import('./components/Study.jsx'));
 const Guide = lazy(() => import('./components/Guide.jsx'));
+const Guides = lazy(() => import('./components/Guides.jsx'));
+const GuideEditor = lazy(() => import('./components/GuideEditor.jsx'));
 const Settings = lazy(() => import('./components/Settings.jsx'));
 
 const FullScreenLoading = () => <div className="grid min-h-screen place-items-center text-sm text-muted">Loading…</div>;
@@ -120,6 +122,8 @@ function page({ parts, query }) {
     case 'create':
       return <Create moduleId={query.get('module')} deckId={query.get('deck')} />;
     case 'guides':
+      return id ? <GuideEditor key={id} guideId={id} section={query.get('section')} /> : <Guides />;
+    case 'lectures':
       return <Guide key={id} materialId={id} />;
     case 'settings':
       return <Settings />;

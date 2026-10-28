@@ -28,6 +28,8 @@ export function newCard(deckId, card) {
     topic: card.topic ?? null,
     source_page: card.page ?? card.source_page ?? null,
     material_id: card.material_id ?? null,
+    // Only sent for cards made from a guide, so older databases without these columns still work.
+    ...(card.guide_id ? { guide_id: card.guide_id, guide_anchor: card.guide_anchor ?? null } : {}),
     ease: 2.5,
     interval_days: 0,
     reps: 0,

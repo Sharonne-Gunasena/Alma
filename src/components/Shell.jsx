@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, CalendarDays, Clock3, House, Layers, LogOut, Settings } from 'lucide-react';
+import { BookOpen, CalendarDays, Clock3, House, Layers, LogOut, NotebookPen, Settings } from 'lucide-react';
 import { useApp } from '../context.js';
 import { cn } from '../ui/cn.js';
 
@@ -7,7 +7,8 @@ const NAV = [
   { path: '/', label: 'Today', icon: House, match: (s) => !s },
   { path: '/planner', label: 'Planner', icon: CalendarDays, match: (s) => s === 'planner' },
   { path: '/timetable', label: 'Timetable', icon: Clock3, match: (s) => s === 'timetable' },
-  { path: '/modules', label: 'Modules', icon: BookOpen, match: (s) => s === 'modules' || s === 'guides' },
+  { path: '/modules', label: 'Modules', icon: BookOpen, match: (s) => s === 'modules' },
+  { path: '/guides', label: 'Guides', icon: NotebookPen, match: (s) => s === 'guides' || s === 'lectures' },
   { path: '/decks', label: 'Flashcards', icon: Layers, match: (s) => s === 'decks' || s === 'create' || s === 'study' },
 ];
 

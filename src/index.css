@@ -4,6 +4,7 @@
 @import '@fontsource-variable/geist-mono';
 
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @theme {
   --font-sans: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -100,6 +101,125 @@ body {
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
   }
+}
+
+/* ---------- Study guide editor ---------- */
+.guide-editor .ProseMirror {
+  outline: none;
+  min-height: 60vh;
+}
+.guide-editor .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+.guide-editor .ProseMirror p.is-editor-empty:first-child::before,
+.guide-editor .ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--cl-muted);
+  opacity: 0.7;
+}
+.guide-editor div[data-callout] {
+  position: relative;
+  margin: 1.1em 0;
+  padding: 2.1em 1.1em 0.9em;
+  border-radius: 1rem;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+}
+.guide-editor div[data-callout]::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 0.7em;
+  left: 1.1em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-fg);
+}
+.guide-editor div[data-callout] > :first-child {
+  margin-top: 0;
+}
+.guide-editor div[data-callout] > :last-child {
+  margin-bottom: 0;
+}
+.guide-editor div[data-tone='keyterm'] {
+  --c-bg: color-mix(in srgb, var(--color-indigo-500) 8%, transparent);
+  --c-border: color-mix(in srgb, var(--color-indigo-500) 25%, transparent);
+  --c-fg: var(--color-indigo-600);
+}
+.guide-editor div[data-tone='info'] {
+  --c-bg: color-mix(in srgb, var(--color-sky-500) 8%, transparent);
+  --c-border: color-mix(in srgb, var(--color-sky-500) 25%, transparent);
+  --c-fg: var(--color-sky-600);
+}
+.guide-editor div[data-tone='tip'] {
+  --c-bg: color-mix(in srgb, var(--color-emerald-500) 8%, transparent);
+  --c-border: color-mix(in srgb, var(--color-emerald-500) 25%, transparent);
+  --c-fg: var(--color-emerald-600);
+}
+.guide-editor div[data-tone='warning'] {
+  --c-bg: color-mix(in srgb, var(--color-amber-500) 10%, transparent);
+  --c-border: color-mix(in srgb, var(--color-amber-500) 30%, transparent);
+  --c-fg: var(--color-amber-600);
+}
+.guide-editor div[data-tone='question'] {
+  --c-bg: color-mix(in srgb, var(--color-rose-500) 7%, transparent);
+  --c-border: color-mix(in srgb, var(--color-rose-500) 22%, transparent);
+  --c-fg: var(--color-rose-600);
+}
+.guide-editor li > p {
+  margin: 0.15em 0;
+}
+.guide-editor ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.2em;
+}
+.guide-editor ul[data-type='taskList'] li {
+  display: flex;
+  gap: 0.6em;
+  align-items: flex-start;
+}
+.guide-editor ul[data-type='taskList'] li > label {
+  margin-top: 0.3em;
+}
+.guide-editor ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+.guide-editor ul[data-type='taskList'] input {
+  accent-color: var(--color-indigo-600);
+}
+.guide-editor [data-type='block-math'] {
+  margin: 1em 0;
+  padding: 0.8em;
+  border-radius: 0.75rem;
+  background: var(--cl-subtle);
+  text-align: center;
+  cursor: pointer;
+}
+.guide-editor [data-type='inline-math'] {
+  cursor: pointer;
+  padding: 0 0.15em;
+  border-radius: 0.3em;
+}
+.guide-editor [data-type='inline-math']:hover,
+.guide-editor [data-type='block-math']:hover {
+  outline: 2px solid color-mix(in srgb, var(--color-indigo-500) 30%, transparent);
+}
+.guide-editor img {
+  border-radius: 0.9rem;
+  border: 1px solid var(--cl-line);
+}
+.guide-editor img.ProseMirror-selectednode {
+  outline: 3px solid var(--color-indigo-400);
+}
+.guide-editor mark {
+  background: color-mix(in srgb, var(--color-amber-300) 55%, transparent);
+  color: inherit;
+  border-radius: 0.2em;
+  padding: 0 0.1em;
 }
 
 @media print {

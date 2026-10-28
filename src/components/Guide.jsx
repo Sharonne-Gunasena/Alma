@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { BookText, Layers, Printer } from 'lucide-react';
+import { BookText, Layers, NotebookPen, Printer } from 'lucide-react';
+import { fromLectureGuide } from '../lib/guides.js';
+import { createGuide } from './Guides.jsx';
 import { useApp, useLoad } from '../context.js';
 import { Button } from '../ui/Button.jsx';
 import { BackLink, Card, EmptyState, ModuleBadge, PageHeader, Skeleton, fadeUp } from '../ui/primitives.jsx';
@@ -40,16 +42,25 @@ export default function Guide({ materialId }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <BackLink href={material.module_id ? `#/modules/${material.module_id}` : '#/decks'}>Back</BackLink>
+      <BackLink href="#/guides">Study guides</BackLink>
       <PageHeader
-        eyebrow="Study guide"
+        eyebrow="Lecture guide (made by AI)"
         title={material.name}
         description={guide ? `${sections.length} topics · ${terms} key terms · from ${material.page_count ?? '?'} pages` : undefined}
         actions={
           guide && (
-            <Button className="no-print" onClick={() => window.print()}>
-              <Printer /> Print or save PDF
-            </Button>
+            <>
+              <Button className="no-print" onClick={() => window.print()}>
+                <Printer /> Print or save PDF
+              </Button>
+              <Button
+                variant="primary"
+                className="no-print"
+                onClick={() => createGuide(db, { title: material.name, module_id: material.module_id, material_id: material.id, template: 'lecture', content: fromLectureGuide(guide) })}
+              >
+                <NotebookPen /> Edit as study guide
+              </Button>
+            </>
           )
         }
       >

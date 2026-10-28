@@ -3,7 +3,7 @@
 import { supabase } from '../supabase.js';
 import { MATERIALS_BUCKET } from '../config.js';
 
-export const TABLES = ['modules', 'decks', 'cards', 'materials', 'class_events', 'assignments', 'profiles'];
+export const TABLES = ['modules', 'decks', 'cards', 'materials', 'class_events', 'assignments', 'profiles', 'guides'];
 
 function check({ data, error }) {
   if (error) throw new Error(error.message);
@@ -136,8 +136,9 @@ export function localDb() {
       // Mirror the cascades the cloud database does.
       if (table === 'decks') db.cards = db.cards.filter((c) => c.deck_id !== id);
       if (table === 'modules')
-        for (const t of ['decks', 'materials', 'class_events', 'assignments'])
+        for (const t of ['decks', 'materials', 'class_events', 'assignments', 'guides'])
           db[t].forEach((r) => r.module_id === id && (r.module_id = null));
+      if (table === 'guides') db.cards.forEach((c) => c.guide_id === id && (c.guide_id = null));
       save(db);
     },
 

@@ -294,6 +294,11 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                         <Lightbulb /> {busy ? 'Thinking…' : 'Explain this'}
                       </Button>
                     )}
+                    {card.guide_id && (
+                      <Button size="sm" variant="ghost" href={`#/guides/${card.guide_id}${card.guide_anchor ? `?section=${encodeURIComponent(card.guide_anchor)}` : ''}`}>
+                        <FileText /> Open in my guide
+                      </Button>
+                    )}
                     {card.material_id && !source && (
                       <Button size="sm" variant="ghost" onClick={loadSource}>
                         <FileText /> Show in my notes{card.source_page ? ` (p. ${card.source_page})` : ''}

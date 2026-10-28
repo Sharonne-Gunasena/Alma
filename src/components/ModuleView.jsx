@@ -195,7 +195,7 @@ export default function ModuleView({ moduleId }) {
                     .map((m) => (
                       <li key={m.id}>
                         <a
-                          href={m.guide ? `#/guides/${m.id}` : undefined}
+                          href={m.guide ? `#/lectures/${m.id}` : undefined}
                           className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-fg no-underline transition-colors hover:border-indigo-200 hover:bg-subtle"
                         >
                           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-soft text-indigo-600 dark:text-indigo-300">
