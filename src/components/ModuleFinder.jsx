@@ -9,7 +9,7 @@ import { courseSearchLink, extractModules, extractModulesWithAI, normalizeCode, 
 import { activeAI } from '../ai/providers.js';
 import TimetableImport from './TimetableImport.jsx';
 import { Button } from '../ui/Button.jsx';
-import { Checkbox, Field, Input } from '../ui/form.jsx';
+import { Checkbox, Field, Input, Textarea } from '../ui/form.jsx';
 import { Segmented } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
 
@@ -150,32 +150,57 @@ function WebsiteReader({ university, universities, courseName, picked, onToggle,
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [found, setFound] = useState(null);
+  const [pasting, setPasting] = useState(false);
+  const [pasted, setPasted] = useState('');
 
-  async function read(e) {
-    e.preventDefault();
+  // Reads modules from page text, with the AI as a fallback for unusual layouts.
+  async function findIn(text, uni) {
+    let modules = extractModules(text, uni);
+    if (modules.length < 3 && ai) modules = await extractModulesWithAI(ai, text, uni?.name ?? 'the university');
+    if (!modules.length) throw new Error("No module codes found. Try the page that lists the course's modules, or add them by hand.");
+    setFound(modules);
+    // Tick everything found; the student unticks electives they don't take.
+    setPicked((p) => {
+      const next = new Map(p);
+      for (const m of modules) if (!next.has(m.code)) next.set(m.code, { ...m, source: 'website' });
+      return next;
+    });
+  }
+
+  async function run(work) {
     setError(null);
     setFound(null);
-    const pageUni = universityForUrl(url, universities);
-    if (!pageUni || pageUni.id === 'other') return setError(`That link isn't on a supported university website${university?.domains?.[0] ? ` (e.g. ${university.domains[0]})` : ''}.`);
     setBusy(true);
     try {
-      const page = await readCoursePage(url);
-      let modules = extractModules(page.text, pageUni);
-      // Unusual layouts: let the AI read the page if the pattern found little.
-      if (modules.length < 3 && ai) modules = await extractModulesWithAI(ai, page.text, pageUni.name);
-      if (!modules.length) throw new Error("No module codes found on that page. Try the page that lists the course's modules, or add them by hand.");
-      setFound(modules);
-      // Tick everything found; the student unticks electives they don't take.
-      setPicked((p) => {
-        const next = new Map(p);
-        for (const m of modules) if (!next.has(m.code)) next.set(m.code, { ...m, source: 'website' });
-        return next;
-      });
+      await work();
     } catch (err) {
       setError(err.message);
     } finally {
       setBusy(false);
     }
+  }
+
+  function read(e) {
+    e.preventDefault();
+    const pageUni = universityForUrl(url, universities);
+    if (!pageUni || pageUni.id === 'other') return setError(`That link isn't on a supported university website${university?.domains?.[0] ? ` (e.g. ${university.domains[0]})` : ''}.`);
+    run(async () => {
+      try {
+        await findIn((await readCoursePage(url)).text, pageUni);
+      } catch (err) {
+        // Some university sites block automated requests; copying the page text always works.
+        if (/403|blocked|took too long|could not reach/i.test(err.message)) {
+          setPasting(true);
+          throw new Error(`${err.message} That website doesn't allow automatic reading, so copy the page instead: open it, press Ctrl+A then Ctrl+C, and paste below.`);
+        }
+        throw err;
+      }
+    });
+  }
+
+  function readPasted(e) {
+    e.preventDefault();
+    run(() => findIn(pasted, university));
   }
 
   return (
@@ -193,6 +218,20 @@ function WebsiteReader({ university, universities, courseName, picked, onToggle,
         </Button>
       </form>
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}
+      {pasting ? (
+        <form onSubmit={readPasted} className="flex flex-col gap-2">
+          <Field label="Course page text" hint="Open your course page, press Ctrl+A (Cmd+A on Mac) then Ctrl+C, and paste it here.">
+            <Textarea required className="min-h-32" value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="Paste the whole page here…" />
+          </Field>
+          <Button variant="primary" disabled={busy} className="w-fit">
+            <Sparkles /> {busy ? 'Reading…' : 'Find modules'}
+          </Button>
+        </form>
+      ) : (
+        <button type="button" onClick={() => setPasting(true)} className="w-fit text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+          Or paste the page text instead
+        </button>
+      )}
       {found && (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
           <ModuleChecklist heading={`Found ${found.length} modules. Untick any you don't take.`} items={found} picked={picked} onToggle={onToggle} />
