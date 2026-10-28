@@ -7,7 +7,7 @@ const NAV = [
   { path: '/', label: 'Today', icon: House, match: (s) => !s },
   { path: '/planner', label: 'Planner', icon: CalendarDays, match: (s) => s === 'planner' },
   { path: '/timetable', label: 'Timetable', icon: Clock3, match: (s) => s === 'timetable' },
-  { path: '/modules', label: 'Modules', icon: BookOpen, match: (s) => s === 'modules' },
+  { path: '/modules', label: 'Modules', icon: BookOpen, match: (s) => s === 'modules' || s === 'hubs' },
   { path: '/chat', label: 'Chat', icon: MessagesSquare, match: (s) => s === 'chat' },
   // Sidebar only: the phone tab bar is full, so phones reach workspaces from Chat.
   { path: '/workspaces', label: 'Workspaces', icon: Shapes, match: (s) => s === 'workspaces', phone: false },

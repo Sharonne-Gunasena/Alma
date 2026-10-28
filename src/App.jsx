@@ -27,6 +27,7 @@ const Guides = lazy(() => import('./components/Guides.jsx'));
 const GuideEditor = lazy(() => import('./components/GuideEditor.jsx'));
 const Workspaces = lazy(() => import('./components/Workspaces.jsx'));
 const Workspace = lazy(() => import('./components/Workspace.jsx'));
+const Hub = lazy(() => import('./components/Hub.jsx'));
 const Settings = lazy(() => import('./components/Settings.jsx'));
 
 const FullScreenLoading = () => <div className="grid min-h-screen place-items-center text-sm text-muted">Loading…</div>;
@@ -117,6 +118,8 @@ function page({ parts, query }) {
       return <Timetable />;
     case 'modules':
       return id ? <ModuleView key={id} moduleId={id} /> : <Modules />;
+    case 'hubs':
+      return <Hub key={id} catalogId={id} />;
     case 'workspaces':
       return id ? <Workspace key={id} workspaceId={id} /> : <Workspaces />;
     case 'chat':

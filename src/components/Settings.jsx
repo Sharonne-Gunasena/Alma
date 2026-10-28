@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Brain, Check, ExternalLink, Eye, EyeOff, KeyRound, LogOut, RotateCcw, Sparkles, UserRound, Zap } from 'lucide-react';
+import { Brain, Check, ExternalLink, Eye, EyeOff, KeyRound, LogOut, RotateCcw, Sparkles, Trophy, UserRound, Zap } from 'lucide-react';
+import { hubApi } from '../lib/hubs.js';
+import { badgeFor, nextBadge } from '../lib/hubRules.js';
 import { PROVIDERS, listModels } from '../ai/providers.js';
 import { prefs } from '../lib/prefs.js';
-import { useApp } from '../context.js';
+import { useApp, useLoad } from '../context.js';
 import { Button } from '../ui/Button.jsx';
 import { Card, CardHeader, PageHeader, Pill } from '../ui/primitives.jsx';
 import { ChoiceCard, Field, Input, Select } from '../ui/form.jsx';
@@ -103,6 +105,7 @@ export default function Settings() {
             </form>
           </Card>
 
+          {user && <ContributionCard />}
           <Card className="flex flex-col gap-4 p-5">
             <div>
               <h2 className="text-[15px] font-semibold tracking-tight">Account</h2>
@@ -203,5 +206,29 @@ function ProviderKey({ provider }) {
         {busy ? 'Checking…' : 'Save & test'}
       </Button>
     </form>
+  );
+}
+
+// Points from sharing to module hubs, and the badge they earn.
+function ContributionCard() {
+  const [mine] = useLoad(() => hubApi.mine().catch(() => null), []);
+  if (!mine) return null;
+  const pts = Number(mine.points);
+  const badge = badgeFor(pts);
+  const next = nextBadge(pts);
+  return (
+    <Card className="flex flex-col gap-3 p-5">
+      <h2 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
+        <Trophy className="size-4 text-amber-500" /> Your contributions
+      </h2>
+      <p className="text-3xl font-semibold tracking-tight tabular-nums">
+        {pts} <span className="text-sm font-normal text-muted">points</span>
+      </p>
+      <p className="text-sm">{badge ? `${badge.emoji} ${badge.label}` : 'No badge yet'}</p>
+      <p className="text-xs text-muted">
+        {mine.items} shared · {mine.helpful} 👍 received · {mine.copies} copies
+        {next ? ` · ${next.needed} more points for ${next.emoji} ${next.label}` : ''}
+      </p>
+    </Card>
   );
 }

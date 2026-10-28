@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
-import { Download, FileText, Layers, Ellipsis, Pencil, Play, Plus, Search, Shuffle, Sparkles, Trash } from 'lucide-react';
+import { Download, FileText, Layers, Ellipsis, Pencil, Play, Plus, Search, Share2, Shuffle, Sparkles, Trash } from 'lucide-react';
+import { ShareToHubDialog } from './Hub.jsx';
 import { useApp, useLoad, go } from '../context.js';
 import { addCards, MASTERED_DAYS } from '../lib/data.js';
 import { isDue } from '../lib/srs.js';
@@ -21,6 +22,8 @@ export default function DeckView({ deckId }) {
   const [editing, setEditing] = useState(null); // {} for a new card
   const [query, setQuery] = useState('');
   const [moving, setMoving] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const { modules, user } = useApp();
 
   if (error) return <p className="text-rose-600">{error}</p>;
   if (!data)
@@ -31,6 +34,7 @@ export default function DeckView({ deckId }) {
       </div>
     );
   const { deck, cards } = data;
+  const catalogId = modules.find((m) => m.id === deck.module_id)?.catalog_module_id;
 
   async function saveCard(e) {
     e.preventDefault();
@@ -109,6 +113,7 @@ export default function DeckView({ deckId }) {
                 { label: 'Add from a lecture', icon: Sparkles, onSelect: () => go(`/create?deck=${deckId}${deck.module_id ? `&module=${deck.module_id}` : ''}`) },
                 { label: 'Rename', icon: Pencil, onSelect: rename },
                 { label: 'Change module', icon: Layers, onSelect: () => setMoving(true) },
+                { label: 'Share to module hub', icon: Share2, onSelect: () => (catalogId ? setSharing(true) : toast('Link this deck to a module from the shared catalogue first (Change module).')) },
                 { label: 'Export JSON', icon: Download, onSelect: exportDeck },
                 '-',
                 { label: 'Delete deck', icon: Trash, onSelect: removeDeck, danger: true },
@@ -229,6 +234,7 @@ export default function DeckView({ deckId }) {
         )}
       </Modal>
 
+      {user && catalogId && <ShareToHubDialog open={sharing} onClose={() => setSharing(false)} catalogId={catalogId} moduleId={deck.module_id} preset={{ kind: 'deck', id: deck.id, title: deck.title }} />}
       <Modal open={moving} onOpenChange={setMoving} title="Change module">
         <div className="pb-2">
           <ModuleSelect value={deck.module_id} onChange={setModule} />

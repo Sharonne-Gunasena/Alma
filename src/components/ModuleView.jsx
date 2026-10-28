@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { BookText, CalendarClock, Clock3, FileText, GraduationCap, Layers, MapPin, Ellipsis, Pencil, Plus, Sparkles, Trash } from 'lucide-react';
+import { BookText, CalendarClock, Clock3, FileText, GraduationCap, Layers, MapPin, Ellipsis, Pencil, Plus, Sparkles, Trash, Users } from 'lucide-react';
 import { useApp, useLoad, go } from '../context.js';
 import { listDecks } from '../lib/data.js';
 import { DAY_MS, formatDue, isoDate, startOfDay, WEEKDAYS_SHORT } from '../lib/time.js';
@@ -93,6 +93,11 @@ export default function ModuleView({ moduleId }) {
             {due > 0 && (
               <Button href={`#/study?mode=due&module=${moduleId}`} className="bg-white text-slate-900 shadow-lg hover:bg-white/90">
                 <Layers /> Study {due} due
+              </Button>
+            )}
+            {module.catalog_module_id && (
+              <Button href={`#/hubs/${module.catalog_module_id}`} className="border-white/25 bg-white/15 text-white shadow-none backdrop-blur hover:border-white/50 hover:bg-white/25">
+                <Users /> Module hub
               </Button>
             )}
             <Button href={`#/create?module=${moduleId}`} className="border-white/25 bg-white/15 text-white shadow-none backdrop-blur hover:border-white/50 hover:bg-white/25">

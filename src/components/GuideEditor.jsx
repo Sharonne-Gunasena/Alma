@@ -30,6 +30,7 @@ import {
   Radical,
   Redo2,
   Sigma,
+  Share2,
   Sparkles,
   SquareCode,
   Strikethrough,
@@ -50,6 +51,7 @@ import { Button } from '../ui/Button.jsx';
 import { BackLink, Card, EmptyState, Pill, Skeleton } from '../ui/primitives.jsx';
 import { Checkbox, Select, Textarea } from '../ui/form.jsx';
 import { Menu, Modal, useDialogs } from '../ui/dialog.jsx';
+import { ShareToHubDialog } from './Hub.jsx';
 import { cn } from '../ui/cn.js';
 
 const SAVE_DELAY = 800;
@@ -83,15 +85,17 @@ export default function GuideEditor({ guideId, section }) {
 }
 
 function Editor({ guide, section }) {
-  const { db, modules } = useApp();
+  const { db, modules, user } = useApp();
   const dialogs = useDialogs();
   const ai = activeAI();
   const [title, setTitle] = useState(guide.title);
   const [moduleId, setModuleId] = useState(guide.module_id);
+  const catalogId = modules.find((m) => m.id === moduleId)?.catalog_module_id;
   const [status, setStatus] = useState('saved');
   const [content, setContent] = useState(guide.content);
   const [makeCards, setMakeCards] = useState(null); // { anchors: [...], selection?: string }
   const [quiz, setQuiz] = useState(null);
+  const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(null);
   const timer = useRef();
   const pending = useRef({});
@@ -275,6 +279,15 @@ function Editor({ guide, section }) {
               </Button>
             }
             items={[
+              {
+                label: 'Share to module hub',
+                icon: Share2,
+                onSelect: async () => {
+                  if (!catalogId) return toast('Pick a module for this guide first (one from your course).');
+                  await flush(); // share the latest text
+                  setSharing(true);
+                },
+              },
               { label: 'Download Markdown', icon: FileDown, onSelect: exportMarkdown },
               { label: 'Print or save as PDF', icon: Printer, onSelect: () => window.print() },
               '-',
@@ -379,6 +392,7 @@ function Editor({ guide, section }) {
         onSaved={reloadCards}
       />
       <QuizDialog questions={quiz} onClose={() => setQuiz(null)} />
+      {user && catalogId && <ShareToHubDialog open={sharing} onClose={() => setSharing(false)} catalogId={catalogId} moduleId={moduleId} preset={{ kind: 'guide', id: guide.id, title }} />}
     </div>
   );
 }
