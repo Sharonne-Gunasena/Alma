@@ -45,7 +45,7 @@ export default function Shell({ route, children }) {
       <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-line bg-card px-3 py-5 text-muted md:flex lg:px-4">
         <a href="#/" className="flex items-center gap-3 px-1.5 text-fg no-underline">
           <LogoMark />
-          <span className="hidden text-[17px] font-semibold tracking-tight lg:inline">CampusLoop</span>
+          <span className="hidden text-[17px] font-semibold tracking-tight lg:inline">Alma</span>
         </a>
 
         <nav className="flex flex-col gap-1">
@@ -111,7 +111,7 @@ export default function Shell({ route, children }) {
         {/* Phone header */}
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-bg/80 px-4 py-3 backdrop-blur-xl md:hidden">
           <a href="#/" className="flex items-center gap-2.5 font-semibold tracking-tight text-fg no-underline">
-            <LogoMark className="size-8" /> CampusLoop
+            <LogoMark className="size-8" /> Alma
           </a>
           <a href="#/settings" className="rounded-full p-2 text-muted hover:bg-subtle hover:text-fg" aria-label="Settings">
             <Settings className="size-5" />

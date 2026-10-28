@@ -59,7 +59,7 @@ export default function Auth({ onGuest }) {
         <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-amber-300/30 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-sky-300/30 blur-3xl" />
         <div className="relative flex items-center gap-3 text-lg font-semibold tracking-tight">
-          <LogoMark /> CampusLoop
+          <LogoMark /> Alma
         </div>
         <div className="relative mt-auto mb-auto flex max-w-md flex-col gap-8">
           <div className="flex flex-col gap-4">

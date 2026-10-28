@@ -274,7 +274,7 @@ export default function Dashboard() {
           <CardHeader title="Topics to work on" icon={Brain} />
           <div className="flex flex-col gap-3 p-5 pt-4">
             {weak.length === 0 ? (
-              <p className="text-sm text-muted">Study some flashcards and CampusLoop will spot the topics you find hardest.</p>
+              <p className="text-sm text-muted">Study some flashcards and Alma will spot the topics you find hardest.</p>
             ) : (
               weak.map((t) => (
                 <a key={t.topic} href={`#/decks/${t.deck_id}/study?mode=topic&topic=${encodeURIComponent(t.topic)}`} className="group flex flex-col gap-1.5 text-fg no-underline">
@@ -317,7 +317,7 @@ export default function Dashboard() {
           {modules.length === 0 && (
             <Card className="sm:col-span-2">
               <EmptyState icon={Layers} title="No modules yet">
-                Import your timetable and CampusLoop creates your modules automatically. <a href="#/timetable">Go to timetable</a>
+                Import your timetable and Alma creates your modules automatically. <a href="#/timetable">Go to timetable</a>
               </EmptyState>
             </Card>
           )}

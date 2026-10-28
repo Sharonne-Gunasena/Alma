@@ -50,7 +50,7 @@ export default function Decks() {
       <PageHeader
         eyebrow="Flashcards"
         title={due ? `${due} card${due === 1 ? '' : 's'} to review` : 'All caught up'}
-        description={total ? `${total} cards across ${shown.length} decks · ${mastered} mastered.` : 'Upload lecture slides and CampusLoop turns them into flashcards and a study guide.'}
+        description={total ? `${total} cards across ${shown.length} decks · ${mastered} mastered.` : 'Upload lecture slides and Alma turns them into flashcards and a study guide.'}
         actions={
           <>
             {due > 0 && (

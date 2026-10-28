@@ -45,7 +45,7 @@ export default function Settings() {
           <div>
             <h2 className="text-[15px] font-semibold tracking-tight">AI provider</h2>
             <p className="mt-1 text-sm text-muted">
-              CampusLoop uses your own key. Gemini and Groq give free keys. Keys stay in this browser and are only ever sent to that provider.
+              Alma uses your own key. Gemini and Groq give free keys. Keys stay in this browser and are only ever sent to that provider.
             </p>
           </div>
           <div className="flex flex-col gap-2.5">

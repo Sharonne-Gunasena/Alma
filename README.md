@@ -1,8 +1,8 @@
-# CampusLoop
+# Alma
 
 **The student life operating system.** Timetable, deadlines, an adaptive study planner and AI-built flashcards from your own lecture slides, all in one place.
 
-Live: https://sharonne-gunasena.github.io/CampusLoopStudy/
+Live: https://sharonne-gunasena.github.io/Alma/
 
 ## Features
 

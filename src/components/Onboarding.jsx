@@ -154,7 +154,7 @@ export default function Onboarding() {
                 >
                   <div>
                     <h2 className="text-lg font-semibold tracking-tight">Where and what do you study?</h2>
-                    <p className="text-sm text-muted">CampusLoop uses this to find your modules and connect you with your course.</p>
+                    <p className="text-sm text-muted">Alma uses this to find your modules and connect you with your course.</p>
                   </div>
                   <Field label="University or college">
                     <Select value={uniId} onChange={(e) => setUniId(e.target.value)}>
@@ -171,7 +171,7 @@ export default function Onboarding() {
                     </Field>
                   )}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
-                    <Field label="Course" hint={course ? 'Classmates on this course already use CampusLoop.' : courses.length ? 'Pick from the list or type your course name.' : undefined}>
+                    <Field label="Course" hint={course ? 'Classmates on this course already use Alma.' : courses.length ? 'Pick from the list or type your course name.' : undefined}>
                       <Input required value={courseName} onChange={(e) => setCourseName(e.target.value)} list="course-options" placeholder="e.g. Computer Science" />
                       <datalist id="course-options">
                         {courses.map((c) => (

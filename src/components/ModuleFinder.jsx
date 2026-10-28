@@ -66,7 +66,7 @@ export default function ModuleFinder({ university, universities, courseName, cou
           <p className="text-sm text-muted">Checking what classmates on your course take…</p>
         ) : suggested.length === 0 ? (
           <div className="rounded-2xl bg-subtle px-4 py-3 text-sm text-muted">
-            {course ? 'No classmates on this course have shared their modules yet.' : 'Your course is new to CampusLoop.'} Import your timetable or read your course page instead, and you'll be the first. Classmates
+            {course ? 'No classmates on this course have shared their modules yet.' : 'Your course is new to Alma.'} Import your timetable or read your course page instead, and you'll be the first. Classmates
             who join after you get your list suggested.
           </div>
         ) : (
@@ -206,7 +206,7 @@ function WebsiteReader({ university, universities, courseName, picked, onToggle,
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-muted">
-        Paste the link to your course's page on the {university?.short_name ?? 'university'} website, the one that lists its modules. CampusLoop reads the module codes and names from it.
+        Paste the link to your course's page on the {university?.short_name ?? 'university'} website, the one that lists its modules. Alma reads the module codes and names from it.
       </p>
       <a href={courseSearchLink(university, courseName)} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400">
         Find my course page <ExternalLink className="size-3.5" />

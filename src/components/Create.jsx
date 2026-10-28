@@ -204,7 +204,7 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
       <PageHeader
         eyebrow="Lecture → flashcards"
         title="Turn a lecture into flashcards"
-        description="Upload slides or notes. CampusLoop works through them section by section and builds flashcards and a study guide."
+        description="Upload slides or notes. Alma works through them section by section and builds flashcards and a study guide."
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
