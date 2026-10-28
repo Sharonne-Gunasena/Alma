@@ -129,7 +129,7 @@ function Block({ block, from }) {
       whileHover={block.onClick ? { scale: 1.02 } : undefined}
       title={block.tooltip}
       className={cn('absolute inset-x-1 z-10 flex flex-col overflow-hidden rounded-lg px-2 py-1 text-left text-[11px] leading-tight transition-colors', STYLES[block.kind])}
-      style={{ top, height: h, '--c': block.color ?? '#6366f1' }}
+      style={{ top, height: h, '--c': block.color ?? '#f97316' }}
     >
       <span className="truncate font-semibold">{block.title}</span>
       {h > 30 && block.subtitle && <span className="truncate opacity-75">{block.subtitle}</span>}

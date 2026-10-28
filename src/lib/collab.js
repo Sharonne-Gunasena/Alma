@@ -32,7 +32,7 @@ export function diffFor(doc, svBase64) {
 
 const SEND_EVERY_MS = 120;
 const SAVE_AFTER_MS = 2500;
-const COLORS = ['#6366f1', '#e5534b', '#2f9e5a', '#d4881e', '#3b82c4', '#9b59b6', '#16a2a2', '#c2185b'];
+const COLORS = ['#f97316', '#ef4444', '#0ea5e9', '#d97706', '#e11d48', '#0284c7', '#ea580c', '#16a34a'];
 export const colorFor = (id) => COLORS[[...String(id)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % COLORS.length];
 
 // ---------- The provider ----------

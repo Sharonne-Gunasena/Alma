@@ -6,7 +6,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-indigo-600 text-white shadow-glow hover:bg-indigo-500 hover:-translate-y-px dark:bg-indigo-500 dark:hover:bg-indigo-400',
+        primary: 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-glow hover:from-orange-400 hover:to-red-500 hover:-translate-y-px',
         secondary: 'bg-card text-fg border border-line shadow-card hover:border-indigo-300 hover:-translate-y-px dark:hover:border-indigo-500/50',
         ghost: 'text-muted hover:text-fg hover:bg-subtle',
         soft: 'bg-soft text-indigo-700 hover:bg-indigo-100 dark:text-indigo-300 dark:hover:bg-indigo-500/20',

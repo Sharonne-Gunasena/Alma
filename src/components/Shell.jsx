@@ -17,10 +17,10 @@ const NAV = [
 
 export function LogoMark({ className }) {
   return (
-    <span className={cn('relative inline-grid size-9 place-items-center rounded-xl bg-indigo-600 shadow-glow', className)}>
+    <span className={cn('relative inline-grid size-9 place-items-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 shadow-glow', className)}>
       <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="6.5" stroke="white" strokeWidth="2.6" />
-        <circle cx="18.2" cy="8.4" r="2.4" fill="#f59e0b" stroke="#4f46e5" strokeWidth="1.4" />
+        <circle cx="18.2" cy="8.4" r="2.4" fill="#7dd3fc" stroke="#ea580c" strokeWidth="1.4" />
       </svg>
     </span>
   );
@@ -42,8 +42,8 @@ export default function Shell({ route, children }) {
   return (
     <div className="min-h-screen md:grid md:grid-cols-[76px_1fr] lg:grid-cols-[248px_1fr]">
       {/* Sidebar: icon rail on tablets, full width on desktop. */}
-      <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-white/5 bg-ink px-3 py-5 text-slate-300 md:flex lg:px-4">
-        <a href="#/" className="flex items-center gap-3 px-1.5 text-white no-underline">
+      <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-line bg-card px-3 py-5 text-muted md:flex lg:px-4">
+        <a href="#/" className="flex items-center gap-3 px-1.5 text-fg no-underline">
           <LogoMark />
           <span className="hidden text-[17px] font-semibold tracking-tight lg:inline">CampusLoop</span>
         </a>
@@ -58,17 +58,17 @@ export default function Shell({ route, children }) {
                 title={n.label}
                 className={cn(
                   'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
-                  active ? 'text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100',
+                  active ? 'text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
                 )}
               >
                 {active && (
                   <motion.span
                     layoutId="nav-active"
-                    className="absolute inset-0 rounded-xl bg-white/10 ring-1 ring-white/10"
+                    className="absolute inset-0 rounded-xl bg-soft ring-1 ring-orange-200/70 dark:ring-orange-500/20"
                     transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
                   />
                 )}
-                {active && <motion.span layoutId="nav-bar" className="absolute top-2 bottom-2 -left-3 w-1 rounded-r-full bg-amber-400 lg:-left-4" />}
+                {active && <motion.span layoutId="nav-bar" className="absolute top-2 bottom-2 -left-3 w-1 rounded-r-full bg-sky-400 lg:-left-4" />}
                 <n.icon className="relative size-[18px]" strokeWidth={1.9} />
                 <span className="relative hidden lg:inline">{n.label}</span>
               </a>
@@ -82,24 +82,24 @@ export default function Shell({ route, children }) {
             title="Settings"
             className={cn(
               'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
-              section === 'settings' ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100',
+              section === 'settings' ? 'bg-soft text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
             )}
           >
             <Settings className="size-[18px]" strokeWidth={1.9} />
             <span className="hidden lg:inline">Settings</span>
           </a>
-          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-ink-2 p-2.5 ring-1 ring-white/5 max-lg:justify-center">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 text-[13px] font-semibold text-white">
+          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-subtle p-2.5 ring-1 ring-sky-100 max-lg:justify-center dark:ring-sky-500/10">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-[13px] font-semibold text-white">
               {initials(name) || 'G'}
             </span>
             <div className="hidden min-w-0 flex-1 lg:block">
-              <p className="truncate text-sm font-medium text-white">{profile?.display_name || 'Student'}</p>
-              <p className="truncate text-xs text-slate-400">{user?.email ?? 'Guest · this browser only'}</p>
+              <p className="truncate text-sm font-medium text-fg">{profile?.display_name || 'Student'}</p>
+              <p className="truncate text-xs text-muted">{user?.email ?? 'Guest · this browser only'}</p>
             </div>
             <button
               onClick={signOut}
               title={user ? 'Sign out' : 'Exit guest mode'}
-              className="hidden rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white lg:block"
+              className="hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card hover:text-fg lg:block"
             >
               <LogOut className="size-4" />
             </button>
@@ -121,7 +121,7 @@ export default function Shell({ route, children }) {
         <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-32 sm:px-6 md:pb-12 lg:px-10 lg:pt-10">
           {!user && (
             <div className="mb-6 flex items-center gap-2 rounded-2xl border border-indigo-200/60 bg-soft px-4 py-2.5 text-[13px] text-indigo-900 dark:border-indigo-500/20 dark:text-indigo-200">
-              <span className="size-1.5 shrink-0 rounded-full bg-amber-500" />
+              <span className="size-1.5 shrink-0 rounded-full bg-sky-500" />
               Guest mode: everything is saved in this browser only. Create an account to sync across devices.
             </div>
           )}
@@ -140,12 +140,12 @@ export default function Shell({ route, children }) {
       </div>
 
       {/* Phone tab bar */}
-      <nav className="fixed inset-x-3 bottom-3 z-30 flex rounded-2xl border border-white/10 bg-ink/95 p-1.5 shadow-2xl backdrop-blur-xl md:hidden" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="fixed inset-x-3 bottom-3 z-30 flex rounded-2xl border border-line bg-card/95 p-1.5 shadow-lift backdrop-blur-xl md:hidden" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
         {NAV.filter((n) => n.phone !== false).map((n) => {
           const active = n.match(section);
           return (
-            <a key={n.path} href={`#${n.path}`} className={cn('relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium no-underline', active ? 'text-white' : 'text-slate-400')}>
-              {active && <motion.span layoutId="tab-active" className="absolute inset-0 rounded-xl bg-white/10" transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }} />}
+            <a key={n.path} href={`#${n.path}`} className={cn('relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium no-underline', active ? 'text-orange-700 dark:text-orange-300' : 'text-muted')}>
+              {active && <motion.span layoutId="tab-active" className="absolute inset-0 rounded-xl bg-soft" transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }} />}
               <n.icon className="relative size-5" strokeWidth={1.9} />
               <span className="relative">{n.label}</span>
             </a>

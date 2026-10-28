@@ -15,9 +15,9 @@ const FEATURES = [
 
 // Floating notification chips on the brand panel.
 const CHIPS = [
-  { dot: 'bg-indigo-400', title: 'COMP10110 lecture', sub: 'In 25 min · Science Hub', className: 'top-[16%] right-[8%]' },
+  { dot: 'bg-orange-400', title: 'COMP10110 lecture', sub: 'In 25 min · Science Hub', className: 'top-[16%] right-[8%]' },
   { dot: 'bg-emerald-400', title: '12 cards reviewed', sub: '92% recall today', className: 'top-[44%] right-[5%]' },
-  { dot: 'bg-amber-400', title: 'Assignment due Thu', sub: '3h planned before then', className: 'bottom-[18%] right-[6%]' },
+  { dot: 'bg-sky-400', title: 'Assignment due Thu', sub: '3h planned before then', className: 'bottom-[18%] right-[6%]' },
 ];
 
 function friendlyAuthError(message) {
@@ -55,21 +55,21 @@ export default function Auth({ onGuest }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand panel */}
-      <section className="relative hidden overflow-hidden bg-ink p-12 text-white lg:flex lg:flex-col">
-        <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-indigo-600/30 blur-3xl" />
-        <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-amber-500/10 blur-3xl" />
+      <section className="relative hidden overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-12 text-white lg:flex lg:flex-col">
+        <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-amber-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-sky-300/30 blur-3xl" />
         <div className="relative flex items-center gap-3 text-lg font-semibold tracking-tight">
           <LogoMark /> CampusLoop
         </div>
         <div className="relative mt-auto mb-auto flex max-w-md flex-col gap-8">
           <div className="flex flex-col gap-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-indigo-300">
-              <span className="size-1.5 rotate-45 bg-amber-400" /> Built for university students
+            <p className="flex items-center gap-2 text-sm font-medium text-orange-100">
+              <span className="size-1.5 rotate-45 bg-sky-300" /> Built for university students
             </p>
             <h1 className="text-5xl leading-[1.05] font-semibold tracking-[-0.04em]">
               Your whole semester.
               <br />
-              <span className="text-indigo-300">One loop.</span>
+              <span className="text-sky-200">One loop.</span>
             </h1>
           </div>
           <ul className="flex flex-col gap-5">

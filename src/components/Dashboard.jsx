@@ -174,7 +174,7 @@ export default function Dashboard() {
                 {items.map((item, i) => {
                   const past = item.end <= nowMin;
                   const current = item.start <= nowMin && nowMin < item.end;
-                  const color = item.kind === 'class' ? moduleById(item.c.module_id)?.color ?? '#64748b' : item.kind === 'review' ? '#10b981' : moduleById(item.s.module_id)?.color ?? '#6366f1';
+                  const color = item.kind === 'class' ? moduleById(item.c.module_id)?.color ?? '#64748b' : item.kind === 'review' ? '#10b981' : moduleById(item.s.module_id)?.color ?? '#f97316';
                   return (
                     <motion.li
                       key={i}

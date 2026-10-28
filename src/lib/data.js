@@ -68,7 +68,7 @@ export async function deleteMaterial(db, material) {
   await db.remove('materials', material.id);
 }
 
-export const MODULE_COLORS = ['#4f5bd5', '#e5534b', '#2f9e5a', '#d4881e', '#3b82c4', '#9b59b6', '#16a2a2', '#c2185b'];
+export const MODULE_COLORS = ['#f97316', '#ef4444', '#0ea5e9', '#fb923c', '#e11d48', '#38bdf8', '#f59e0b', '#0284c7'];
 
 // Saves parsed timetable slots, creating a module for each new module code.
 export async function importTimetable(db, slots, modules) {

@@ -397,7 +397,7 @@ function SessionComplete({ tally, practice, backHref }) {
     if (fired.current || !total || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     fired.current = true;
     import('canvas-confetti').then(({ default: confetti }) =>
-      confetti({ particleCount: 90, spread: 75, origin: { y: 0.55 }, colors: ['#6366f1', '#818cf8', '#f59e0b', '#10b981'] }),
+      confetti({ particleCount: 90, spread: 75, origin: { y: 0.55 }, colors: ['#f97316', '#ef4444', '#7dd3fc', '#fdba74'] }),
     );
   }, [total]);
 

@@ -75,7 +75,7 @@ export default function ModuleView({ moduleId }) {
         initial="hidden"
         animate="show"
         className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lift sm:p-8"
-        style={{ background: `linear-gradient(135deg, ${module.color}, color-mix(in srgb, ${module.color} 45%, #0a0f1e))` }}
+        style={{ background: `linear-gradient(135deg, ${module.color}, color-mix(in srgb, ${module.color} 45%, #2a1209))` }}
       >
         <div className="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full border-[28px] border-white/10" />
         <div className="pointer-events-none absolute right-24 -bottom-20 size-40 rounded-full bg-white/10 blur-2xl" />

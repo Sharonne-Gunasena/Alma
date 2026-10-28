@@ -78,7 +78,7 @@ export default function Modules() {
             return (
               <motion.div key={m.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
                 <Card as="a" href={`#/modules/${m.id}`} interactive className="group flex h-full flex-col overflow-hidden text-fg no-underline">
-                  <div className="relative h-20 overflow-hidden" style={{ background: `linear-gradient(135deg, ${m.color}, color-mix(in srgb, ${m.color} 55%, #0a0f1e))` }}>
+                  <div className="relative h-20 overflow-hidden" style={{ background: `linear-gradient(135deg, ${m.color}, color-mix(in srgb, ${m.color} 55%, #2a1209))` }}>
                     <div className="absolute -right-6 -bottom-10 size-32 rounded-full border-[14px] border-white/15 transition-transform duration-500 group-hover:scale-110" />
                     <span className="absolute top-3 left-4 rounded-full bg-white/20 px-2.5 py-0.5 font-mono text-[11px] font-medium text-white backdrop-blur">{m.code || 'Module'}</span>
                     {examDays !== null && examDays >= 0 && (

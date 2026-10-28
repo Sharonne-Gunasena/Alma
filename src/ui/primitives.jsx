@@ -32,7 +32,7 @@ export function CardHeader({ title, icon: Icon, action, className }) {
 export function Eyebrow({ children, className }) {
   return (
     <p className={cn('flex items-center gap-2 text-[13px] font-medium text-indigo-600 dark:text-indigo-400', className)}>
-      <span className="size-1.5 rotate-45 rounded-[1px] bg-amber-500" aria-hidden />
+      <span className="size-1.5 rotate-45 rounded-[1px] bg-sky-400" aria-hidden />
       {children}
     </p>
   );

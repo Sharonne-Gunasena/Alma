@@ -254,7 +254,7 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
                       <div
                         className={cn(
                           'rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap',
-                          mine ? 'rounded-br-md bg-indigo-600 text-white' : 'rounded-bl-md bg-card text-fg ring-1 ring-line',
+                          mine ? 'rounded-br-md bg-gradient-to-br from-orange-500 to-red-500 text-white' : 'rounded-bl-md bg-card text-fg ring-1 ring-line',
                         )}
                       >
                         {msg.body}

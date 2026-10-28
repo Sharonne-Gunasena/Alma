@@ -54,7 +54,7 @@ export default function Hub({ catalogId }) {
         initial="hidden"
         animate="show"
         className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lift sm:p-8"
-        style={{ background: `linear-gradient(135deg, ${mod.color}, color-mix(in srgb, ${mod.color} 45%, #0a0f1e))` }}
+        style={{ background: `linear-gradient(135deg, ${mod.color}, color-mix(in srgb, ${mod.color} 45%, #2a1209))` }}
       >
         <div className="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full border-[28px] border-white/10" />
         <div className="relative flex flex-wrap items-end justify-between gap-4">
