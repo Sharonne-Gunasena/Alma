@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, CalendarDays, Clock3, House, Layers, LogOut, MessagesSquare, NotebookPen, Settings } from 'lucide-react';
+import { BookOpen, CalendarDays, Clock3, House, Layers, LogOut, MessagesSquare, NotebookPen, Settings, Shapes } from 'lucide-react';
 import { useApp } from '../context.js';
 import { cn } from '../ui/cn.js';
 
@@ -9,6 +9,8 @@ const NAV = [
   { path: '/timetable', label: 'Timetable', icon: Clock3, match: (s) => s === 'timetable' },
   { path: '/modules', label: 'Modules', icon: BookOpen, match: (s) => s === 'modules' },
   { path: '/chat', label: 'Chat', icon: MessagesSquare, match: (s) => s === 'chat' },
+  // Sidebar only: the phone tab bar is full, so phones reach workspaces from Chat.
+  { path: '/workspaces', label: 'Workspaces', icon: Shapes, match: (s) => s === 'workspaces', phone: false },
   { path: '/guides', label: 'Guides', icon: NotebookPen, match: (s) => s === 'guides' || s === 'lectures' },
   { path: '/decks', label: 'Flashcards', icon: Layers, match: (s) => s === 'decks' || s === 'create' || s === 'study' },
 ];
@@ -139,7 +141,7 @@ export default function Shell({ route, children }) {
 
       {/* Phone tab bar */}
       <nav className="fixed inset-x-3 bottom-3 z-30 flex rounded-2xl border border-white/10 bg-ink/95 p-1.5 shadow-2xl backdrop-blur-xl md:hidden" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
-        {NAV.map((n) => {
+        {NAV.filter((n) => n.phone !== false).map((n) => {
           const active = n.match(section);
           return (
             <a key={n.path} href={`#${n.path}`} className={cn('relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium no-underline', active ? 'text-white' : 'text-slate-400')}>

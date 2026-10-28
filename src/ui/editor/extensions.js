@@ -7,6 +7,7 @@ import Image from '@tiptap/extension-image';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
 import { Placeholder } from '@tiptap/extensions';
 import Mathematics from '@tiptap/extension-mathematics';
+import Collaboration from '@tiptap/extension-collaboration';
 import { CALLOUTS } from '../../lib/guides.js';
 
 // A coloured box with a label ("🔑 Key term", "💡 Note", …) that holds any blocks.
@@ -51,10 +52,12 @@ export const Callout = Node.create({
   },
 });
 
-export function buildExtensions({ onEditMath, placeholder = 'Start writing, or pick a block from the toolbar…' } = {}) {
+// With `ydoc`, the document is shared live (Yjs); Yjs then provides undo, so StarterKit's is off.
+export function buildExtensions({ onEditMath, placeholder = 'Start writing, or pick a block from the toolbar…', ydoc } = {}) {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
+      ...(ydoc ? { undoRedo: false } : {}),
       link: { openOnClick: false, autolink: true, defaultProtocol: 'https' },
     }),
     Highlight.configure({ multicolor: false }),
@@ -68,6 +71,7 @@ export function buildExtensions({ onEditMath, placeholder = 'Start writing, or p
       blockOptions: { onClick: (node, pos) => onEditMath?.('block', node, pos) },
       inlineOptions: { onClick: (node, pos) => onEditMath?.('inline', node, pos) },
     }),
+    ...(ydoc ? [Collaboration.configure({ document: ydoc, field: 'notes' })] : []),
   ];
 }
 

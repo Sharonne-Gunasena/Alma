@@ -402,7 +402,7 @@ function ToolButton({ icon: Icon, label, active, onClick, disabled }) {
   );
 }
 
-function Toolbar({ editor, onImage, onLink, onMath }) {
+export function Toolbar({ editor, onImage, onLink, onMath }) {
   const file = useRef();
   const c = () => editor.chain().focus();
   const level = [1, 2, 3].find((l) => editor.isActive('heading', { level: l }));

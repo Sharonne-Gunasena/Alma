@@ -1,13 +1,13 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, Bell, BellOff, Flag, LogOut, MessagesSquare, MoreHorizontal, Send, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bell, BellOff, LogOut, MessagesSquare, MoreHorizontal, Send, UserPlus, Users } from 'lucide-react';
 import { chatApi, joinRoom, watchMessages } from '../lib/chat.js';
 import { cleanMessage, conversationTitle, dayLabel, formatTime, messageProblem, startsNewDay, typingLabel, visibleMessages } from '../lib/chatRules.js';
 import { Menu, useDialogs } from '../ui/dialog.jsx';
 import { Button } from '../ui/Button.jsx';
 import { Card, EmptyState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
-import { InviteSheet, ReportSheet } from './ChatSheets.jsx';
+import { InviteSheet } from './ChatSheets.jsx';
 
 const TYPING_HOLD_MS = 3500;
 
@@ -21,7 +21,6 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
   const [online, setOnline] = useState([]);
   const [typing, setTyping] = useState({});
   const [inviting, setInviting] = useState(false);
-  const [reporting, setReporting] = useState(null); // null, or the message being reported (or 'person')
   const roomRef = useRef(null);
   const lastTypingSent = useRef(0);
   const bottom = useRef(null);
@@ -171,7 +170,6 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
   const menuItems = [
     row.kind === 'group' && { label: 'Invite people', icon: UserPlus, onSelect: () => setInviting(true) },
     { label: row.muted ? 'Turn notifications on' : 'Mute chat', icon: row.muted ? Bell : BellOff, onSelect: toggleMute },
-    isDirect && !iBlockedThem && { label: 'Report person', icon: Flag, onSelect: () => setReporting('person') },
     isDirect && !iBlockedThem && { label: 'Block', icon: Ban, danger: true, onSelect: block },
     isDirect && iBlockedThem && { label: 'Unblock', icon: Ban, onSelect: unblock },
     row.kind !== 'module' && '-',
@@ -268,11 +266,6 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
                             Delete
                           </button>
                         )}
-                        {!mine && (
-                          <button onClick={() => setReporting(msg)} className="opacity-0 transition-opacity hover:text-rose-600 group-hover:opacity-100 focus:opacity-100">
-                            Report
-                          </button>
-                        )}
                       </span>
                     </div>
                   </li>
@@ -323,13 +316,6 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
           onAdded={onChanged}
         />
       )}
-      <ReportSheet
-        open={Boolean(reporting)}
-        onClose={() => setReporting(null)}
-        conversationId={id}
-        reportedUserId={reporting && reporting !== 'person' ? reporting.sender_id : otherId}
-        message={reporting && reporting !== 'person' ? reporting : null}
-      />
     </section>
   );
 }

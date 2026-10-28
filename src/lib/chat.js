@@ -125,8 +125,9 @@ export function watchMessages(conversationId, onInsert) {
 }
 
 // Who is online in a chat, and who is typing. Presence and typing are not stored in the database.
+// The channel is private: only chat members can join it (see migration 006).
 export function joinRoom(conversationId, me, { onOnline, onTyping }) {
-  const channel = supabase.channel(`chat-room-${conversationId}`, { config: { presence: { key: me.id } } });
+  const channel = supabase.channel(`chat:${conversationId}`, { config: { private: true, presence: { key: me.id } } });
   channel
     .on('presence', { event: 'sync' }, () => onOnline(Object.keys(channel.presenceState())))
     .on('broadcast', { event: 'typing' }, ({ payload }) => onTyping(payload))

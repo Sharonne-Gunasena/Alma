@@ -25,6 +25,8 @@ const Study = lazy(() => import('./components/Study.jsx'));
 const Guide = lazy(() => import('./components/Guide.jsx'));
 const Guides = lazy(() => import('./components/Guides.jsx'));
 const GuideEditor = lazy(() => import('./components/GuideEditor.jsx'));
+const Workspaces = lazy(() => import('./components/Workspaces.jsx'));
+const Workspace = lazy(() => import('./components/Workspace.jsx'));
 const Settings = lazy(() => import('./components/Settings.jsx'));
 
 const FullScreenLoading = () => <div className="grid min-h-screen place-items-center text-sm text-muted">Loading…</div>;
@@ -115,6 +117,8 @@ function page({ parts, query }) {
       return <Timetable />;
     case 'modules':
       return id ? <ModuleView key={id} moduleId={id} /> : <Modules />;
+    case 'workspaces':
+      return id ? <Workspace key={id} workspaceId={id} /> : <Workspaces />;
     case 'chat':
       // "#/chat/join/<code>" opens an invite link; "#/chat/<id>" opens a chat.
       return <Chat conversationId={id === 'join' ? null : id} joinCode={id === 'join' ? sub : null} />;

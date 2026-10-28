@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { MessagesSquare, Plus, Send, Users } from 'lucide-react';
+import { MessagesSquare, Plus, Send, Shapes, Users } from 'lucide-react';
 import { useApp, useLoad, go } from '../context.js';
 import { chatApi, watchInbox } from '../lib/chat.js';
 import { groupConversations, isMissingMigration } from '../lib/chatRules.js';
@@ -88,6 +88,9 @@ function ChatInbox({ conversationId, joinCode, userId, myName }) {
           description="Talk with classmates on your modules, in study groups, or one to one."
           actions={
             <>
+              <Button href="#/workspaces">
+                <Shapes /> Workspaces
+              </Button>
               <Button onClick={() => setMessaging(true)}>
                 <Send /> Message
               </Button>
