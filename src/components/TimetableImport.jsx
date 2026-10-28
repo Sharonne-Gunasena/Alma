@@ -4,13 +4,14 @@ import { CalendarDays, Check, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseIcs } from '../lib/ics.js';
 import { importTimetable } from '../lib/data.js';
+import { contributeModules } from '../lib/catalog.js';
 import { useApp } from '../context.js';
 import { WEEKDAYS_SHORT } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
 import { Dropzone } from '../ui/Dropzone.jsx';
 
 export default function TimetableImport({ onDone }) {
-  const { db, modules, reloadModules } = useApp();
+  const { db, modules, reloadModules, profile } = useApp();
   const [slots, setSlots] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -30,6 +31,8 @@ export default function TimetableImport({ onDone }) {
     setBusy(true);
     try {
       const result = await importTimetable(db, slots, modules);
+      // Share the module list with the student's course, so classmates get it suggested.
+      await contributeModules(db, profile, result.moduleList, 'timetable');
       await reloadModules();
       setSlots(null);
       toast.success(`Imported ${result.classes} classes`, { description: `${result.modules} modules are set up.` });

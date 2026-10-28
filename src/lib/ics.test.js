@@ -30,6 +30,7 @@ describe('parseTitle', () => {
   it('reads UCD-style module titles', () => {
     expect(parseTitle('COMP10330: Critical Thinking (Practical)')).toEqual({ code: 'COMP10330', name: 'Critical Thinking', kind: 'practical' });
     expect(parseTitle('Team meeting')).toEqual({ code: null, name: 'Team meeting', kind: 'class' });
+    expect(parseTitle('CA116 - Computer Programming (Lab)')).toEqual({ code: 'CA116', name: 'Computer Programming', kind: 'lab' });
   });
 });
 

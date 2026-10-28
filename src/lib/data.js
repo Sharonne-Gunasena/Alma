@@ -99,7 +99,7 @@ export async function importTimetable(db, slots, modules) {
       module_id: s.code ? byCode.get(s.code).id : null,
     }));
   if (rows.length) await db.insert('class_events', rows);
-  return { classes: rows.length, modules: byCode.size };
+  return { classes: rows.length, modules: byCode.size, moduleList: [...byCode.values()] };
 }
 
 export async function listModules(db) {

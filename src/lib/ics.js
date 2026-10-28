@@ -7,8 +7,10 @@ import { fromMinutes, isoDate } from './time.js';
 const MAX_OCCURRENCES = 200;
 
 // "COMP10330: Critical Thinking (Practical)" -> code, name, kind
+// Codes vary by university (COMP10330, CSU11001, CS1101, CA116), so any
+// 2–5 capitals followed by 3–6 digits counts.
 export function parseTitle(summary) {
-  const m = summary.match(/^\s*([A-Z]{3,5}\s?\d{4,6}[A-Z]?)\s*[:\-–]\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/);
+  const m = summary.match(/^\s*([A-Z]{2,5}\s?\d{3,6}[A-Z]?)\s*[:\-–]\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/);
   if (!m) return { code: null, name: summary.trim(), kind: guessKind(summary) };
   return { code: m[1].replace(/\s/g, ''), name: m[2].trim(), kind: (m[3] ?? guessKind(summary)).toLowerCase() };
 }

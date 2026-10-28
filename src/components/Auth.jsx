@@ -128,8 +128,8 @@ export default function Auth({ onGuest }) {
           />
 
           <form className="flex flex-col gap-4" onSubmit={submit}>
-            <Field label="Email">
-              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="you@university.ie" />
+            <Field label="Email" hint={mode === 'signup' ? 'Any email works: personal or university.' : undefined}>
+              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com" />
             </Field>
             <Field label="Password" hint={mode === 'signup' ? 'At least 6 characters.' : undefined}>
               <Input

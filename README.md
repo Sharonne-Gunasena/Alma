@@ -46,6 +46,15 @@ In the Supabase dashboard, open **SQL Editor → New query** and run each file i
 
 Under **Authentication → URL Configuration**, set the Site URL and Redirect URLs to the live address.
 
+## Course page reader (Supabase Edge Function)
+
+[`supabase/functions/read-course-page`](supabase/functions/read-course-page/index.ts) fetches a university course page so the app can find its modules. It only reads pages on domains listed in the `universities` table. Deploy it once:
+
+```bash
+npx supabase login
+npx supabase functions deploy read-course-page --project-ref ncqppzpfnvlrtqhbftnx
+```
+
 ## Deploy
 
 Every push to `main` builds, tests and deploys to GitHub Pages ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)).
