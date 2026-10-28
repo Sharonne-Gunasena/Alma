@@ -17,6 +17,7 @@ const Planner = lazy(() => import('./components/Planner.jsx'));
 const Timetable = lazy(() => import('./components/Timetable.jsx'));
 const Modules = lazy(() => import('./components/Modules.jsx'));
 const ModuleView = lazy(() => import('./components/ModuleView.jsx'));
+const Chat = lazy(() => import('./components/Chat.jsx'));
 const Decks = lazy(() => import('./components/Decks.jsx'));
 const DeckView = lazy(() => import('./components/DeckView.jsx'));
 const Create = lazy(() => import('./components/Create.jsx'));
@@ -114,6 +115,9 @@ function page({ parts, query }) {
       return <Timetable />;
     case 'modules':
       return id ? <ModuleView key={id} moduleId={id} /> : <Modules />;
+    case 'chat':
+      // "#/chat/join/<code>" opens an invite link; "#/chat/<id>" opens a chat.
+      return <Chat conversationId={id === 'join' ? null : id} joinCode={id === 'join' ? sub : null} />;
     case 'decks':
       if (id && sub === 'study') return <Study key={id + query} deckId={id} mode={query.get('mode')} topic={query.get('topic')} />;
       return id ? <DeckView key={id} deckId={id} /> : <Decks />;
