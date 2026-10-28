@@ -415,6 +415,11 @@ create policy "Members read who is in their chats" on public.conversation_member
 drop policy if exists "Members update their own settings" on public.conversation_members;
 create policy "Members update their own settings" on public.conversation_members
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+-- Only the personal settings columns may change. Without this, a member could
+-- point their own row at another conversation_id and join a chat uninvited,
+-- or promote themselves to owner.
+revoke update on public.conversation_members from authenticated, anon;
+grant update (muted, last_read_at) on public.conversation_members to authenticated;
 
 drop policy if exists "Members read messages" on public.messages;
 create policy "Members read messages" on public.messages
