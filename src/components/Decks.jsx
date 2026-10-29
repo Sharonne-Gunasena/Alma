@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
-import { FileUp, Layers, Plus, Sparkles } from 'lucide-react';
+import { ClipboardCheck, FileUp, Layers, Plus, Sparkles } from 'lucide-react';
 import { useApp, useLoad, go } from '../context.js';
 import { addCards, listDecks } from '../lib/data.js';
 import { Button } from '../ui/Button.jsx';
@@ -56,6 +56,11 @@ export default function Decks() {
             {due > 0 && (
               <Button href={`#/study?mode=due${filter ? `&module=${filter}` : ''}`}>
                 <Layers /> Review {due}
+              </Button>
+            )}
+            {total >= 2 && (
+              <Button href={`#/exam${filter ? `?module=${filter}` : ''}`}>
+                <ClipboardCheck /> Practice exam
               </Button>
             )}
             <Button variant="primary" href={`#/create${filter ? `?module=${filter}` : ''}`}>

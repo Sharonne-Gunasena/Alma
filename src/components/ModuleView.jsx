@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { BookText, CalendarClock, Clock3, FileText, GraduationCap, Layers, MapPin, Ellipsis, Pencil, Plus, Sparkles, Trash, Users } from 'lucide-react';
+import { ArrowRight, BookText, CalendarClock, ClipboardCheck, Clock3, FileText, Gauge, GraduationCap, Layers, MapPin, Ellipsis, Pencil, Plus, Sparkles, Trash, Users } from 'lucide-react';
 import { useApp, useLoad, go } from '../context.js';
 import { listDecks } from '../lib/data.js';
+import { STATUS, moduleReadiness } from '../lib/readiness.js';
 import { DAY_MS, formatDue, isoDate, startOfDay, WEEKDAYS_SHORT } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
-import { BackLink, Card, CardHeader, EmptyState, ProgressBar, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { BackLink, Card, CardHeader, EmptyState, Pill, ProgressBar, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
 import { Field, Input } from '../ui/form.jsx';
 import { Menu, Modal, useDialogs } from '../ui/dialog.jsx';
 import { ColorPicker } from './Modules.jsx';
@@ -17,13 +18,17 @@ export default function ModuleView({ moduleId }) {
   const module = moduleById(moduleId);
   const [editing, setEditing] = useState(null);
   const [data] = useLoad(async () => {
-    const [decks, materials, assignments, classes] = await Promise.all([
+    const [decks, materials, assignments, classes, allCards, attempts] = await Promise.all([
       listDecks(db, { module_id: moduleId }),
       db.list('materials', { module_id: moduleId }, 'id, name, page_count, guide, created_at'),
       db.list('assignments', { module_id: moduleId }),
       db.list('class_events', { module_id: moduleId }),
+      db.list('cards', {}, 'id, deck_id, topic, due, reviews, lapses, interval_days'),
+      // Missing until migration 008 has been run; readiness works without it.
+      db.list('exam_attempts', { module_id: moduleId }).catch(() => []),
     ]);
-    return { decks, materials, assignments, classes };
+    const deckIds = new Set(decks.map((d) => d.id));
+    return { decks, materials, assignments, classes, cards: allCards.filter((c) => deckIds.has(c.deck_id)), attempts };
   }, [db, moduleId]);
 
   if (!module)
@@ -95,6 +100,11 @@ export default function ModuleView({ moduleId }) {
                 <Layers /> Study {due} due
               </Button>
             )}
+            {data?.cards.length >= 2 && (
+              <Button href={`#/exam?module=${moduleId}`} className="border-white/25 bg-white/15 text-white shadow-none backdrop-blur hover:border-white/50 hover:bg-white/25">
+                <ClipboardCheck /> Practice exam
+              </Button>
+            )}
             {module.catalog_module_id && (
               <Button href={`#/hubs/${module.catalog_module_id}`} className="border-white/25 bg-white/15 text-white shadow-none backdrop-blur hover:border-white/50 hover:bg-white/25">
                 <Users /> Module hub
@@ -127,6 +137,8 @@ export default function ModuleView({ moduleId }) {
         </div>
       ) : (
         <>
+          {data.cards.length > 0 && <Readiness r={moduleReadiness({ cards: data.cards, attempts: data.attempts, examDate: module.exam_date, moduleId })} />}
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             <Card>
               <CardHeader title="Exam" icon={GraduationCap} />
@@ -277,5 +289,97 @@ export default function ModuleView({ moduleId }) {
         )}
       </Modal>
     </div>
+  );
+}
+
+// Evidence-based readiness: what you've shown you know, and what to do next.
+// Deliberately no "chance of passing".
+function Readiness({ r }) {
+  const [all, setAll] = useState(false);
+  const pct = (v) => (v === null || v === undefined ? '–' : `${Math.round(v * 100)}%`);
+  const stats = [
+    { label: 'Cards studied', value: pct(r.coverage), hint: `of ${r.totalCards}` },
+    { label: 'Recall in reviews', value: pct(r.retention), hint: r.retention === null ? 'no reviews yet' : 'answered right' },
+    { label: 'Last practice exam', value: r.latest ? pct(r.latest.score) : '–', hint: r.latest ? new Date(r.latest.finished_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'none yet', href: r.latest ? `#/exam/${r.latest.id}` : null },
+    { label: 'Due now', value: r.due, hint: r.due ? 'to review' : 'all caught up' },
+  ];
+  const topics = all ? r.topics : r.topics.slice(0, 6);
+  return (
+    <Card>
+      <CardHeader
+        title="Exam readiness"
+        icon={Gauge}
+        action={
+          <span className="hidden gap-1.5 text-xs sm:flex">
+            {Object.entries(r.counts)
+              .filter(([, n]) => n)
+              .map(([k, n]) => (
+                <Pill key={k} tone={STATUS[k].tone}>
+                  {n} {STATUS[k].label.toLowerCase()}
+                </Pill>
+              ))}
+          </span>
+        }
+      />
+      <div className="grid grid-cols-1 gap-5 p-5 pt-4 lg:grid-cols-[1fr_300px]">
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {stats.map((s) => {
+              const Tag = s.href ? 'a' : 'div';
+              return (
+                <Tag key={s.label} href={s.href ?? undefined} className="rounded-2xl bg-subtle px-3.5 py-3 text-fg no-underline">
+                  <p className="text-xs text-muted">{s.label}</p>
+                  <p className="text-xl font-semibold tracking-tight tabular-nums">{s.value}</p>
+                  <p className="truncate text-[11px] text-muted">{s.hint}</p>
+                </Tag>
+              );
+            })}
+          </div>
+
+          <ul className="flex flex-col gap-3">
+            {topics.map((t) => (
+              <li key={t.topic} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate font-medium">{t.topic}</span>
+                  <Pill tone={STATUS[t.status].tone} className="shrink-0">
+                    {STATUS[t.status].label}
+                  </Pill>
+                </div>
+                <ProgressBar value={t.total ? t.mastered / t.total : 0} tone={t.status === 'risk' ? 'rose' : t.status === 'secure' ? 'emerald' : 'indigo'} />
+                <p className="text-[11px] text-muted">
+                  {t.mastered} of {t.total} mastered · {t.studied} studied
+                  {t.reasons.length ? ` · ${t.reasons.join(' · ')}` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+          {r.topics.length > 6 && (
+            <button onClick={() => setAll(!all)} className="w-fit text-[13px] font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+              {all ? 'Show fewer topics' : `Show all ${r.topics.length} topics`}
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-semibold tracking-tight">Next steps</p>
+          {r.actions.length === 0 && <p className="text-sm text-muted">You're on top of this module. Keep reviewing cards as they come due.</p>}
+          {r.actions.map((a, i) => (
+            <a key={i} href={a.href} className="group flex items-start gap-3 rounded-2xl border border-line px-3.5 py-3 text-fg no-underline transition-colors hover:border-indigo-200 hover:bg-subtle">
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-soft text-indigo-600 dark:text-indigo-300">
+                {a.kind === 'exam' ? <ClipboardCheck className="size-3.5" /> : a.kind === 'due' ? <Layers className="size-3.5" /> : <Sparkles className="size-3.5" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium group-hover:text-indigo-600">{a.label}</span>
+                <span className="block text-xs text-muted">{a.detail}</span>
+              </span>
+              <ArrowRight className="mt-1 size-3.5 shrink-0 text-muted" />
+            </a>
+          ))}
+          <p className="text-[11px] leading-relaxed text-muted">
+            Based only on your flashcard reviews and practice exams{r.daysToExam !== null && r.daysToExam >= 0 ? `, with ${r.daysToExam} day${r.daysToExam === 1 ? '' : 's'} to go` : ''}. It shows what you've demonstrated, not a predicted grade.
+          </p>
+        </div>
+      </div>
+    </Card>
   );
 }

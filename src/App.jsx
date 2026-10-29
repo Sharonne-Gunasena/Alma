@@ -22,6 +22,7 @@ const Decks = lazy(() => import('./components/Decks.jsx'));
 const DeckView = lazy(() => import('./components/DeckView.jsx'));
 const Create = lazy(() => import('./components/Create.jsx'));
 const Study = lazy(() => import('./components/Study.jsx'));
+const Exam = lazy(() => import('./components/Exam.jsx'));
 const Guide = lazy(() => import('./components/Guide.jsx'));
 const Guides = lazy(() => import('./components/Guides.jsx'));
 const GuideEditor = lazy(() => import('./components/GuideEditor.jsx'));
@@ -130,6 +131,9 @@ function page({ parts, query }) {
       return id ? <DeckView key={id} deckId={id} /> : <Decks />;
     case 'study':
       return <Study key={'all' + query} mode={query.get('mode')} moduleId={query.get('module')} />;
+    case 'exam':
+      // "#/exam?module=<id>" sets up an exam; "#/exam/<id>" is an attempt.
+      return <Exam key={id ?? `home${query}`} attemptId={id} moduleId={query.get('module')} />;
     case 'create':
       return <Create moduleId={query.get('module')} deckId={query.get('deck')} />;
     case 'guides':

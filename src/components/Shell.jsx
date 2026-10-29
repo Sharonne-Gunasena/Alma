@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, CalendarDays, Clock3, House, Layers, LogOut, MessagesSquare, NotebookPen, Settings, Shapes } from 'lucide-react';
+import { BookOpen, CalendarDays, ClipboardCheck, Clock3, House, Layers, LogOut, MessagesSquare, NotebookPen, Settings, Shapes } from 'lucide-react';
 import { useApp } from '../context.js';
 import { cn } from '../ui/cn.js';
 
@@ -13,6 +13,8 @@ const NAV = [
   { path: '/workspaces', label: 'Workspaces', icon: Shapes, match: (s) => s === 'workspaces', phone: false },
   { path: '/guides', label: 'Guides', icon: NotebookPen, match: (s) => s === 'guides' || s === 'lectures' },
   { path: '/decks', label: 'Flashcards', icon: Layers, match: (s) => s === 'decks' || s === 'create' || s === 'study' },
+  // Sidebar only: phones reach exams from Flashcards and module pages.
+  { path: '/exam', label: 'Exam practice', icon: ClipboardCheck, match: (s) => s === 'exam', phone: false },
 ];
 
 export function LogoMark({ className }) {

@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
 import {
   ArrowRight,
@@ -6,6 +7,7 @@ import {
   CalendarClock,
   Check,
   Clock3,
+  History,
   Layers,
   MapPin,
   Plus,
@@ -16,6 +18,7 @@ import {
 import { useApp } from '../context.js';
 import { usePlan } from '../lib/usePlan.js';
 import { weakTopics } from '../lib/data.js';
+import * as checkins from '../lib/checkins.js';
 import { isDue } from '../lib/srs.js';
 import {
   DAY_MS,
@@ -36,9 +39,36 @@ import { cn } from '../ui/cn.js';
 
 const minutesOf = (d) => d.getHours() * 60 + d.getMinutes();
 
+// Remembers today's planned sessions and asks about the ones that have ended.
+function useCheckins(plan, assignments) {
+  const { user } = useApp();
+  const uid = user?.id ?? 'local';
+  const [list, setList] = useState(() => checkins.load(uid));
+
+  useEffect(() => {
+    if (!plan) return;
+    const now = new Date();
+    setList((prev) => {
+      const next = checkins.remember(prev, plan.sessions.filter((s) => sameDay(s.start, now)), now);
+      checkins.save(uid, next);
+      return next;
+    });
+  }, [plan, uid]);
+
+  const resolve = (item) =>
+    setList((prev) => {
+      const next = checkins.resolve(prev, checkins.overlapping(prev, item));
+      checkins.save(uid, next);
+      return next;
+    });
+
+  return { asks: checkins.pending(list, assignments), resolve };
+}
+
 export default function Dashboard() {
   const { profile, moduleById, modules } = useApp();
   const { loading, error, plan, assignments = [], classEvents = [], cards = [], decks = [], dueCount, logStudy } = usePlan();
+  const { asks, resolve } = useCheckins(plan, assignments);
   const now = new Date();
 
   if (loading) return <DashboardSkeleton />;
@@ -78,7 +108,27 @@ export default function Dashboard() {
   async function markDone(s) {
     const minutes = (s.end - s.start) / 60000;
     await logStudy(s.assignmentId, minutes);
+    resolve({ assignmentId: s.assignmentId, start: new Date(s.start).toISOString(), end: new Date(s.end).toISOString() });
     toast.success(`Logged ${formatHours(minutes)} on ${s.title}`, { description: 'Your plan has been updated.' });
+  }
+
+  // Answer to "did you get to it?". Skipped work is already back in the plan,
+  // because the planner rebuilds from what's left, so say where it went.
+  async function checkIn(item, share) {
+    const minutes = Math.round(((new Date(item.end) - new Date(item.start)) / 60000) * share);
+    resolve(item);
+    if (minutes > 0) {
+      await logStudy(item.assignmentId, minutes);
+      toast.success(`Logged ${formatHours(minutes)} on ${item.title}`);
+      return;
+    }
+    const nextSession = plan.sessions.find((s) => s.kind === 'task' && s.assignmentId === item.assignmentId);
+    const short = plan.warnings.find((w) => w.assignmentId === item.assignmentId);
+    toast(`No problem. ${item.title} has been replanned.`, {
+      description: nextSession
+        ? `Next session: ${WEEKDAYS[nextSession.start.getDay()]} ${fmt(minutesOf(nextSession.start))}.${short ? ` It's now ${formatHours(short.minutes)} short of time, so consider adding study hours.` : ''}`
+        : 'There is no free time left before the deadline. Open the planner to add study hours.',
+    });
   }
 
   return (
@@ -108,9 +158,10 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
-      {/* Up next + warnings */}
+      {/* Up next + check-ins + warnings */}
       <div className="flex flex-col gap-3">
         {next && <UpNext item={next} nowMin={nowMin} moduleById={moduleById} dueCount={dueCount} />}
+        <CheckIns asks={asks} onAnswer={checkIn} />
         {plan.warnings.slice(0, 2).map((w) => (
           <motion.a
             key={w.assignmentId}
@@ -364,6 +415,45 @@ function UpNext({ item, nowMin, moduleById, dueCount }) {
         <span className="font-medium">{title}</span>
         {where && <span className="text-muted"> · {where}</span>}
       </div>
+    </motion.div>
+  );
+}
+
+function CheckIns({ asks, onAnswer }) {
+  if (!asks.length) return null;
+  const today = new Date();
+  return (
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50/70 px-4 py-3.5 dark:border-sky-500/20 dark:bg-sky-500/10">
+      <p className="flex items-center gap-2 text-sm font-medium text-sky-900 dark:text-sky-100">
+        <History className="size-4 text-sky-600 dark:text-sky-300" /> Did you get to {asks.length === 1 ? 'this' : 'these'}?
+      </p>
+      <AnimatePresence initial={false}>
+        {asks.slice(0, 3).map((a) => {
+          const start = new Date(a.start);
+          const end = new Date(a.end);
+          return (
+            <motion.div key={a.key} exit={{ opacity: 0, height: 0 }} className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+              <span className="min-w-0 flex-1">
+                <span className="font-medium">{a.title}</span>{' '}
+                <span className="text-muted">
+                  · {sameDay(start, today) ? 'today' : WEEKDAYS[start.getDay()]} {fmt(minutesOf(start))}–{fmt(minutesOf(end))}
+                </span>
+              </span>
+              <span className="flex gap-1.5">
+                <Button size="sm" variant="secondary" onClick={() => onAnswer(a, 1)}>
+                  <Check /> Yes
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => onAnswer(a, 0.5)}>
+                  Partly
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => onAnswer(a, 0)}>
+                  No
+                </Button>
+              </span>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </motion.div>
   );
 }
