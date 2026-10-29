@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'sonner';
+import { MotionConfig } from 'motion/react';
 import { supabase } from './supabase.js';
 import { cloudDb, localDb } from './lib/db.js';
 import { listModules } from './lib/data.js';
@@ -92,7 +93,9 @@ export default function App() {
 
   if (profile === undefined) return <FullScreenLoading />;
 
+  // reducedMotion="user": animations become instant for people who turn motion off.
   return (
+    <MotionConfig reducedMotion="user">
     <AppContext.Provider value={ctx}>
       <DialogsProvider>
         {!profile?.onboarded ? (
@@ -107,6 +110,7 @@ export default function App() {
         <Toaster position="bottom-right" richColors closeButton toastOptions={{ className: 'font-sans' }} />
       </DialogsProvider>
     </AppContext.Provider>
+    </MotionConfig>
   );
 }
 

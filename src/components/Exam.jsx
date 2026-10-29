@@ -38,6 +38,7 @@ import { BackLink, Card, CardHeader, EmptyState, IconTile, PageHeader, Pill, Pro
 import { Field, Select, Textarea, Toggle } from '../ui/form.jsx';
 import { useDialogs } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
+import { CountUp } from '../ui/motion.jsx';
 
 export const EXAM_MIGRATION_HINT = 'The database needs updating for practice exams: run supabase/migrations/008_exam_practice.sql in the Supabase SQL Editor, then reload.';
 const needsExamMigration = (msg) => /exam_attempts|schema cache|does not exist/i.test(msg ?? '');
@@ -580,7 +581,7 @@ function Results({ attempt, save }) {
       <motion.section variants={fadeUp} initial="hidden" animate="show" className="flex flex-wrap items-center gap-6">
         <ProgressRing value={attempt.score} size={112} stroke={10} color={scoreColor(attempt.score)}>
           <span className="text-center">
-            <span className="block text-3xl font-semibold tracking-tight tabular-nums">{pct}%</span>
+            <CountUp value={pct} format={(n) => `${Math.round(n)}%`} duration={1.4} className="block text-3xl font-semibold tracking-tight" />
           </span>
         </ProgressRing>
         <div className="flex min-w-0 flex-col gap-2">

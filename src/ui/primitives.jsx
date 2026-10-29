@@ -2,15 +2,18 @@
 import { motion } from 'motion/react';
 import { cn } from './cn.js';
 import { useApp } from '../context.js';
+import { RevealText, trackSpotlight } from './motion.jsx';
 
+// Interactive cards lift on hover and light up where the cursor is.
 export function Card({ className, interactive, as: Tag = 'div', ...props }) {
   return (
     <Tag
       className={cn(
         'rounded-2xl border border-line bg-card shadow-card',
-        interactive && 'transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lift dark:hover:border-indigo-500/40',
+        interactive && 'spotlight transition-all duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lift dark:hover:border-indigo-500/40',
         className,
       )}
+      onPointerMove={interactive ? trackSpotlight : undefined}
       {...props}
     />
   );
@@ -164,7 +167,7 @@ export function PageHeader({ eyebrow, title, description, actions, children }) {
     <motion.header variants={fadeUp} initial="hidden" animate="show" className="flex flex-wrap items-end justify-between gap-5">
       <div className="flex max-w-2xl min-w-0 flex-col gap-2.5">
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl">{title}</h1>
+        <RevealText as="h1" text={title} className="text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl" />
         {description && <p className="text-[15px] text-muted text-pretty">{description}</p>}
         {children}
       </div>

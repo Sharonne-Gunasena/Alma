@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, CalendarDays, ClipboardCheck, Clock3, House, Layers, LogOut, MessagesSquare, NotebookPen, Settings, Shapes } from 'lucide-react';
 import { useApp } from '../context.js';
+import { Aurora } from '../ui/motion.jsx';
 import { cn } from '../ui/cn.js';
 
 const NAV = [
@@ -43,6 +44,7 @@ export default function Shell({ route, children }) {
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[76px_1fr] lg:grid-cols-[248px_1fr]">
+      <Aurora />
       {/* Sidebar: icon rail on tablets, full width on desktop. */}
       <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-line bg-card px-3 py-5 text-muted md:flex lg:px-4">
         <a href="#/" className="flex items-center gap-3 px-1.5 text-fg no-underline">
@@ -59,7 +61,7 @@ export default function Shell({ route, children }) {
                 href={`#${n.path}`}
                 title={n.label}
                 className={cn(
-                  'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
                   active ? 'text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
                 )}
               >
@@ -71,7 +73,7 @@ export default function Shell({ route, children }) {
                   />
                 )}
                 {active && <motion.span layoutId="nav-bar" className="absolute top-2 bottom-2 -left-3 w-1 rounded-r-full bg-sky-400 lg:-left-4" />}
-                <n.icon className="relative size-[18px]" strokeWidth={1.9} />
+                <n.icon className="relative size-[18px] transition-transform duration-300 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover:scale-115 group-hover:-rotate-6" strokeWidth={1.9} />
                 <span className="relative hidden lg:inline">{n.label}</span>
               </a>
             );
@@ -83,11 +85,11 @@ export default function Shell({ route, children }) {
             href="#/settings"
             title="Settings"
             className={cn(
-              'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
               section === 'settings' ? 'bg-soft text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
             )}
           >
-            <Settings className="size-[18px]" strokeWidth={1.9} />
+            <Settings className="size-[18px] transition-transform duration-500 group-hover:rotate-90" strokeWidth={1.9} />
             <span className="hidden lg:inline">Settings</span>
           </a>
           <div className="mt-2 flex items-center gap-3 rounded-2xl bg-subtle p-2.5 ring-1 ring-sky-100 max-lg:justify-center dark:ring-sky-500/10">

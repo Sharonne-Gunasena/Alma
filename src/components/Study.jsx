@@ -9,6 +9,7 @@ import { CARD_TYPES } from '../ai/cardTypes.js';
 import { Button } from '../ui/Button.jsx';
 import { Card, IconTile, Kbd, ProgressBar, Segmented, Skeleton } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
+import { Tilt } from '../ui/motion.jsx';
 
 const RATINGS = [
   { id: 'again', label: 'Again', key: '1', tone: 'text-rose-600 dark:text-rose-400', ring: 'hover:border-rose-300 dark:hover:border-rose-500/50', dot: 'bg-rose-500' },
@@ -223,6 +224,8 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="perspective"
             >
+              {/* The card leans toward the cursor; the flip happens inside it. */}
+              <Tilt max={4} light={false} className="preserve-3d">
               <motion.div
                 animate={{ rotateY: flipped ? 180 : 0 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -307,6 +310,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                   </div>
                 </Face>
               </motion.div>
+              </Tilt>
             </motion.div>
           </AnimatePresence>
 

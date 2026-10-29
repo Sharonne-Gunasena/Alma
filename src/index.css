@@ -48,6 +48,22 @@
   }
 }
 
+@keyframes drift-a {
+  to {
+    transform: translate3d(14vmax, 8vmax, 0) scale(1.15);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate3d(-12vmax, 12vmax, 0) scale(0.9);
+  }
+}
+@keyframes drift-c {
+  to {
+    transform: translate3d(-16vmax, -8vmax, 0) scale(1.1);
+  }
+}
+
 /* Light and dark values for the semantic colours. */
 /* soft = orange-tinted highlight areas; subtle = light-blue-tinted fills. */
 :root {
@@ -113,6 +129,99 @@ body {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
+  /* Cursor light: a soft glow inside the card and a lit edge near the pointer.
+     JS sets --mx/--my (see ui/motion.jsx); touch screens never see it. */
+  .spotlight {
+    position: relative;
+  }
+  .spotlight::before,
+  .spotlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .spotlight::after {
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgb(249 115 22 / 0.07), transparent 60%);
+  }
+  .spotlight::before {
+    z-index: 1;
+    padding: 1px;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgb(249 115 22 / 0.6), rgb(56 189 248 / 0.3) 45%, transparent 75%);
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .spotlight:hover::before,
+    .spotlight:hover::after {
+      opacity: 1;
+    }
+  }
+
+  /* A band of light that sweeps across primary buttons on hover. */
+  .btn-sheen {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.32) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .btn-sheen:hover::after {
+    transform: translateX(120%);
+  }
+
+  /* Background colour that drifts slowly behind everything. */
+  .aurora-blob {
+    position: absolute;
+    width: 62vmax;
+    height: 62vmax;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .aurora-a {
+    top: -30vmax;
+    left: -18vmax;
+    background: radial-gradient(closest-side, rgb(251 146 60 / 0.22), transparent);
+    animation: drift-a 28s ease-in-out infinite alternate;
+  }
+  .aurora-b {
+    top: -26vmax;
+    right: -24vmax;
+    background: radial-gradient(closest-side, rgb(125 211 252 / 0.26), transparent);
+    animation: drift-b 34s ease-in-out infinite alternate;
+  }
+  .aurora-c {
+    bottom: -38vmax;
+    left: 25%;
+    background: radial-gradient(closest-side, rgb(248 113 113 / 0.12), transparent);
+    animation: drift-c 40s ease-in-out infinite alternate;
+  }
+  @media (prefers-color-scheme: dark) {
+    .aurora {
+      opacity: 0.55;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora-blob {
+      animation: none;
+    }
+    .btn-sheen::after {
+      display: none;
+    }
+  }
+
   .skeleton {
     background: linear-gradient(90deg, var(--cl-subtle) 25%, var(--cl-line) 37%, var(--cl-subtle) 63%);
     background-size: 200% 100%;

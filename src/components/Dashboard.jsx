@@ -36,6 +36,7 @@ import {
 import { Button } from '../ui/Button.jsx';
 import { Card, CardHeader, EmptyState, Eyebrow, IconTile, ModuleBadge, ProgressBar, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
+import { CountUp, Reveal, RevealText, Tilt } from '../ui/motion.jsx';
 
 const minutesOf = (d) => d.getHours() * 60 + d.getMinutes();
 
@@ -140,10 +141,7 @@ export default function Dashboard() {
             {now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}
             {week ? ` · Week ${week}` : ''}
           </Eyebrow>
-          <h1 className="text-4xl font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
-            {greeting}
-            {profile?.display_name ? `, ${profile.display_name}` : ''}.
-          </h1>
+          <RevealText as="h1" text={`${greeting}${profile?.display_name ? `, ${profile.display_name}` : ''}.`} className="text-4xl font-semibold tracking-[-0.035em] text-balance sm:text-5xl" />
           <p className="text-[15px] text-muted text-pretty">
             {summary.length ? `Today you have ${listify(summary)}.` : 'Nothing scheduled today. A good day to get ahead.'}
           </p>
@@ -186,12 +184,14 @@ export default function Dashboard() {
       {/* Stats */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <Stat i={0} href="#/study?mode=due" icon={Layers} label="Cards due" value={dueCount} hint={dueCount ? 'Review now' : 'All caught up'} />
-        <Stat i={1} href="#/planner" icon={Clock3} label="Study today" value={formatHours(studyToday)} hint={`${formatHours(plan.stats.remainingMinutes)} of work left`} tone="emerald" />
+        <Stat i={1} href="#/planner" icon={Clock3} label="Study today" value={studyToday} format={(m) => formatHours(Math.round(m))} hint={`${formatHours(plan.stats.remainingMinutes)} of work left`} tone="emerald" />
         <Stat i={2} href="#/planner" icon={CalendarClock} label="Due this week" value={dueThisWeek.length} hint={dueThisWeek[0] ? `Next: ${dueThisWeek[0].title}` : 'Nothing due'} tone="amber" />
         <motion.div custom={3} variants={fadeUp} initial="hidden" animate="show">
           <Card className="flex h-full flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 lg:p-5">
             <ProgressRing value={effort ? done / effort : 0} size={56} stroke={6}>
-              <span className="font-mono text-xs font-semibold">{effort ? Math.round((done / effort) * 100) : 0}%</span>
+              <span className="font-mono text-xs font-semibold">
+                <CountUp value={effort ? Math.round((done / effort) * 100) : 0} format={(n) => `${Math.round(n)}%`} />
+              </span>
             </ProgressRing>
             <div className="min-w-0">
               <p className="text-[13px] text-muted">Coursework</p>
@@ -320,7 +320,7 @@ export default function Dashboard() {
       </section>
 
       {/* Weak topics + modules */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+      <Reveal as="section" className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
         <Card>
           <CardHeader title="Topics to work on" icon={Brain} />
           <div className="flex flex-col gap-3 p-5 pt-4">
@@ -373,22 +373,29 @@ export default function Dashboard() {
             </Card>
           )}
         </div>
-      </section>
+      </Reveal>
     </div>
   );
 }
 
-function Stat({ icon, label, value, hint, href, tone = 'indigo', i }) {
+// Numbers count up on load; the card tilts toward the cursor.
+function Stat({ icon, label, value, format, hint, href, tone = 'indigo', i }) {
   return (
-    <motion.div custom={i} variants={fadeUp} initial="hidden" animate="show">
-      <Card as="a" href={href} interactive className="flex h-full flex-col gap-3 p-4 text-fg no-underline lg:p-5">
+    <motion.div custom={i} variants={fadeUp} initial="hidden" animate="show" className="h-full">
+      <Tilt
+        as="a"
+        href={href}
+        className="flex h-full flex-col gap-3 rounded-2xl border border-line bg-card p-4 text-fg no-underline shadow-card transition-shadow duration-300 hover:shadow-lift lg:p-5"
+      >
         <div className="flex items-center justify-between">
           <span className="text-[13px] text-muted">{label}</span>
           <IconTile icon={icon} size="sm" tone={tone} />
         </div>
-        <p className="text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
+        <p className="text-3xl font-semibold tracking-tight">
+          <CountUp value={value} format={format} />
+        </p>
         <p className="truncate text-xs text-muted">{hint}</p>
-      </Card>
+      </Tilt>
     </motion.div>
   );
 }

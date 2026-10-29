@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, CalendarDays, Layers, Sparkles } from 'lucide-react';
+import { RevealText } from '../ui/motion.jsx';
 import { supabase } from '../supabase.js';
 import { LogoMark } from './Shell.jsx';
 import { Button } from '../ui/Button.jsx';
@@ -56,8 +57,8 @@ export default function Auth({ onGuest }) {
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand panel */}
       <section className="relative hidden overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-12 text-white lg:flex lg:flex-col">
-        <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-amber-300/30 blur-3xl" />
-        <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-sky-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-amber-300/30 blur-3xl motion-safe:animate-[drift-a_24s_ease-in-out_infinite_alternate]" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-sky-300/30 blur-3xl motion-safe:animate-[drift-b_30s_ease-in-out_infinite_alternate]" />
         <div className="relative flex items-center gap-3 text-lg font-semibold tracking-tight">
           <LogoMark /> Alma
         </div>
@@ -67,9 +68,8 @@ export default function Auth({ onGuest }) {
               <span className="size-1.5 rotate-45 bg-sky-300" /> Built for university students
             </p>
             <h1 className="text-5xl leading-[1.05] font-semibold tracking-[-0.04em]">
-              Your whole semester.
-              <br />
-              <span className="text-sky-200">One loop.</span>
+              <RevealText text="Your whole semester." className="block" />
+              <RevealText text="One loop." className="block text-sky-200" delay={0.25} />
             </h1>
           </div>
           <ul className="flex flex-col gap-5">
