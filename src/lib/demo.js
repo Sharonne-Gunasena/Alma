@@ -27,10 +27,10 @@ async function seedDemo() {
   const databases = await db.insert('modules', { code: 'DEMO1', name: 'Databases (sample)', color: '#0ea5e9' });
 
   const classes = [
-    { title: 'Formal Foundations 1 lecture', kind: 'lecture', weekday: 1, start: '10:00', end: '11:00', module_id: logic.id, location: 'Lecture theatre' },
-    { title: 'Formal Foundations 1 tutorial', kind: 'tutorial', weekday: 3, start: '14:00', end: '15:00', module_id: logic.id, location: 'Room 2' },
-    { title: 'Databases lecture', kind: 'lecture', weekday: 2, start: '09:00', end: '10:00', module_id: databases.id, location: 'Lecture theatre' },
-    { title: 'Databases lab', kind: 'lab', weekday: 4, start: '11:00', end: '13:00', module_id: databases.id, location: 'Computer lab' },
+    { title: 'Formal Foundations 1 lecture', kind: 'lecture', weekday: 1, start_time: '10:00', end_time: '11:00', module_id: logic.id, location: 'Lecture theatre' },
+    { title: 'Formal Foundations 1 tutorial', kind: 'tutorial', weekday: 3, start_time: '14:00', end_time: '15:00', module_id: logic.id, location: 'Room 2' },
+    { title: 'Databases lecture', kind: 'lecture', weekday: 2, start_time: '09:00', end_time: '10:00', module_id: databases.id, location: 'Lecture theatre' },
+    { title: 'Databases lab', kind: 'lab', weekday: 4, start_time: '11:00', end_time: '13:00', module_id: databases.id, location: 'Computer lab' },
   ].map((c) => ({ ...c, start_date: termStart, end_date: termEnd }));
   await db.insert('class_events', classes);
 
