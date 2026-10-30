@@ -9,9 +9,31 @@ import { isoDate } from './time.js';
 const LOCAL_KEY = 'campusloop_local_v2';
 
 export async function enterDemo() {
+  repairClassTimes();
   if (!localStorage.getItem(LOCAL_KEY)) await seedDemo();
   prefs.setGuest(true);
   history.replaceState(null, '', '#/');
+}
+
+// An earlier build of this demo saved class times as `start` and `end`, which crashed the dashboard.
+// Copy them across so browsers that already loaded that demo recover without losing anything.
+function repairClassTimes() {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if (!raw) return;
+    const db = JSON.parse(raw);
+    let changed = false;
+    for (const row of db.class_events ?? []) {
+      if (!row.start_time && row.start) {
+        row.start_time = row.start;
+        row.end_time = row.end;
+        changed = true;
+      }
+    }
+    if (changed) localStorage.setItem(LOCAL_KEY, JSON.stringify(db));
+  } catch {
+    /* unreadable storage: nothing to repair */
+  }
 }
 
 async function seedDemo() {
