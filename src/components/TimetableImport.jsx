@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { CalendarDays, Check, Sparkles, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,9 +32,21 @@ export default function TimetableImport({ onDone }) {
   const [rules, setRules] = useState([]);
   const [instructions, setInstructions] = useState('');
   const [reading, setReading] = useState(false);
+  const [readStatus, setReadStatus] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  // Bumped on every new read and on cancel, so a late answer from a cancelled read is ignored.
+  const readId = useRef(0);
+
+  useEffect(() => {
+    if (!reading) return;
+    const start = Date.now();
+    setElapsed(0);
+    const timer = setInterval(() => setElapsed(Math.round((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [reading]);
 
   // Screenshot classes take the term dates; calendar classes already have their own.
   const dated = useMemo(
@@ -60,17 +72,29 @@ export default function TimetableImport({ onDone }) {
     const ai = activeAI();
     if (!ai) return setError('Reading a screenshot needs an AI key. Add a Gemini or Claude key in Settings first.');
     if (!ai.info.vision) return setError(`${ai.info.label} can't read images. Switch to Gemini or Claude in Settings to read a screenshot.`);
+    const id = ++readId.current;
+    const current = () => id === readId.current;
     setReading(true);
+    setReadStatus(`Reading your timetable with ${ai.info.label}…`);
     try {
-      const found = await readTimetableImage(ai, await imageToPart(file));
+      const found = await readTimetableImage(ai, await imageToPart(file), {
+        onRetry: ({ message }) => current() && setReadStatus(message),
+      });
+      if (!current()) return;
       if (!found.length) throw new Error('No classes found in that picture. Try a clearer screenshot of the weekly view.');
       setSource('screenshot');
       setSlots(found);
     } catch (err) {
-      setError(`Couldn't read that screenshot: ${err.message}`);
+      if (current()) setError(`Couldn't read that screenshot: ${err.message}`);
     } finally {
-      setReading(false);
+      if (current()) setReading(false);
     }
+  }
+
+  function cancelReading() {
+    readId.current++;
+    setReading(false);
+    setReadStatus(null);
   }
 
   // Turns the instructions into rules. Without an AI key, or if the AI fails, simple word matching is used.
@@ -135,6 +159,24 @@ export default function TimetableImport({ onDone }) {
           <li>No calendar file? Take a screenshot of your weekly timetable and drop it here instead.</li>
         </ol>
       </details>
+
+      {reading && (
+        <div className="flex flex-col gap-2 rounded-xl bg-subtle px-3 py-2.5 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span>
+              {readStatus} <span className="text-muted tabular-nums">{elapsed}s</span>
+            </span>
+            <Button size="sm" variant="ghost" onClick={cancelReading}>
+              Cancel
+            </Button>
+          </div>
+          {elapsed >= 30 && (
+            <p className="text-xs text-muted">
+              Taking a while? Free AI keys are often busy, and Alma keeps retrying for you. You can cancel and try later, or import a calendar file instead.
+            </p>
+          )}
+        </div>
+      )}
 
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}
 

@@ -32,8 +32,10 @@ function clock(text) {
 
 // Reads one picture of a weekly timetable into weekly slots, the same shape the calendar import uses.
 // The dates are filled in by the caller, since a screenshot has no term dates.
-export async function readTimetableImage(ai, image) {
+// onRetry reports waits, e.g. when a free key is busy, so the screen can say what's happening.
+export async function readTimetableImage(ai, image, { onRetry } = {}) {
   const { events } = await generateJSON(ai, {
+    onRetry,
     system: [
       'You read a weekly university timetable from a screenshot.',
       'List each recurring class once, not once per week.',

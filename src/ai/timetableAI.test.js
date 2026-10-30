@@ -33,6 +33,14 @@ describe('readTimetableImage', () => {
     ]);
   });
 
+  it('passes retry messages through, so the screen can show a busy key', async () => {
+    generateJSON.mockResolvedValueOnce({ events: [] });
+    const onRetry = vi.fn();
+    await readTimetableImage(ai, image, { onRetry });
+    generateJSON.mock.calls.at(-1)[1].onRetry({ message: 'Google Gemini is busy. Trying again in 12s…' });
+    expect(onRetry).toHaveBeenCalledWith({ message: 'Google Gemini is busy. Trying again in 12s…' });
+  });
+
   it('drops entries with no real day or time', async () => {
     generateJSON.mockResolvedValueOnce({
       events: [
