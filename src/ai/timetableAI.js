@@ -2,7 +2,7 @@
 // instructions ("leave out Thursday tutorials") into exclusion rules.
 import { z } from 'zod';
 import { generateJSON } from './providers.js';
-import { RULE_FIELDS, weekdayFromName } from '../lib/exclusions.js';
+import { RULE_FIELDS, rulesFromText, weekdayFromName } from '../lib/exclusions.js';
 
 // Plain strings only, with "" for anything not shown: Gemini's structured output
 // doesn't reliably accept nullable fields, so they are avoided here.
@@ -76,4 +76,18 @@ export async function parseExclusions(ai, instructions) {
     maxTokens: 4000,
   });
   return rules.map((r) => (r.kind ? r : { field: r.field, value: r.value }));
+}
+
+// Turns instructions into rules. Codes, days and class types are read in code first, which is
+// instant and needs no key; the AI (when there is one) is only asked when that finds nothing
+// more specific than a name. aiFailed says the AI was tried and plain matching was used instead.
+export async function instructionRules(ai, text) {
+  const found = rulesFromText(text);
+  if (!ai || (found.length && found.every((r) => r.field !== 'title'))) return { rules: found, aiFailed: false };
+  try {
+    const fromAI = await parseExclusions(ai, text);
+    return { rules: fromAI.length ? fromAI : found, aiFailed: false };
+  } catch {
+    return { rules: found, aiFailed: true };
+  }
 }

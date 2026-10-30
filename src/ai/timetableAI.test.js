@@ -4,7 +4,7 @@ import { z } from 'zod';
 vi.mock('./providers.js', () => ({ generateJSON: vi.fn() }));
 
 const { generateJSON } = await import('./providers.js');
-const { parseExclusions, readTimetableImage } = await import('./timetableAI.js');
+const { instructionRules, parseExclusions, readTimetableImage } = await import('./timetableAI.js');
 
 const ai = { provider: 'gemini', info: { vision: true }, apiKey: 'test', model: 'test' };
 const image = { mime: 'image/jpeg', data: 'abc' };
@@ -66,5 +66,32 @@ describe('parseExclusions', () => {
       { field: 'weekday', value: 'Thursday' },
       { field: 'code', value: 'COMP10330', kind: 'tutorial' },
     ]);
+  });
+});
+
+describe('instructionRules', () => {
+  it('reads codes, days and class types without asking the AI', async () => {
+    generateJSON.mockClear();
+    const { rules } = await instructionRules(ai, 'skip thursday tutorials');
+    expect(rules).toEqual([{ field: 'weekday', value: 'thursday', kind: 'tutorial' }]);
+    expect(generateJSON).not.toHaveBeenCalled();
+  });
+
+  it('works with no AI key at all', async () => {
+    const { rules } = await instructionRules(null, 'leave out math10200 tutorials');
+    expect(rules).toEqual([{ field: 'code', value: 'MATH10200', kind: 'tutorial' }]);
+  });
+
+  it('asks the AI only when plain matching finds nothing more than a name', async () => {
+    generateJSON.mockResolvedValueOnce({ rules: [{ field: 'title', value: 'Critical Thinking', kind: '' }] });
+    const { rules } = await instructionRules(ai, 'drop the critical thinking module');
+    expect(rules).toEqual([{ field: 'title', value: 'Critical Thinking' }]);
+  });
+
+  it('falls back to plain matching, and says so, when the AI fails', async () => {
+    generateJSON.mockRejectedValueOnce(new Error('busy'));
+    const { rules, aiFailed } = await instructionRules(ai, 'Italian');
+    expect(aiFailed).toBe(true);
+    expect(rules).toEqual([{ field: 'title', value: 'Italian' }]);
   });
 });

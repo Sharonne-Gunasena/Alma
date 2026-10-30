@@ -5,10 +5,10 @@ import { toast } from 'sonner';
 import { parseIcs, parseTitle } from '../lib/ics.js';
 import { importTimetable } from '../lib/data.js';
 import { contributeModules } from '../lib/catalog.js';
-import { applyExclusions, describeRule, rulesFromText } from '../lib/exclusions.js';
+import { applyExclusions, describeRule } from '../lib/exclusions.js';
 import { imageToPart } from '../lib/imageFile.js';
 import { activeAI } from '../ai/providers.js';
-import { parseExclusions, readTimetableImage } from '../ai/timetableAI.js';
+import { instructionRules, readTimetableImage } from '../ai/timetableAI.js';
 import { useApp } from '../context.js';
 import { WEEKDAYS_SHORT, isoDate } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
@@ -109,24 +109,14 @@ export default function TimetableImport({ onDone }) {
     setReadStatus(null);
   }
 
-  // Turns the instructions into rules. Codes, days and class types are read in code first, which is
-  // instant and needs no key; the AI is only asked when that finds nothing more specific than a name.
   async function addInstructions() {
     const text = instructions.trim();
     if (!text) return;
     setError(null);
-    let found = rulesFromText(text);
-    const ai = activeAI();
-    if (ai && (!found.length || found.some((r) => r.field === 'title'))) {
-      setParsing(true);
-      try {
-        const fromAI = await parseExclusions(ai, text);
-        if (fromAI.length) found = fromAI;
-      } catch {
-        toast('The AI couldn’t read that, so Alma matched your words directly.');
-      }
-      setParsing(false);
-    }
+    setParsing(true);
+    const { rules: found, aiFailed } = await instructionRules(activeAI(), text);
+    setParsing(false);
+    if (aiFailed) toast('The AI couldn’t read that, so Alma matched your words directly.');
     if (!found.length) return setError('I couldn’t find any classes to leave out in that.');
     if (!applyExclusions([...dated, ...existing], found).excluded.length) {
       return setError('That didn’t match any of your classes. Try a module code like MATH10200, a day, or a class type such as "tutorials".');
@@ -280,7 +270,14 @@ export default function TimetableImport({ onDone }) {
           )}
 
           <Button variant="primary" disabled={busy || (kept.length === 0 && alreadyOut.length === 0)} onClick={save} className="self-start">
-            <Upload /> {busy ? 'Importing…' : 'Import timetable'}
+            <Upload />{' '}
+            {busy
+              ? 'Importing…'
+              : alreadyOut.length
+                ? kept.length
+                  ? `Import and remove ${alreadyOut.length}`
+                  : `Remove ${alreadyOut.length} ${alreadyOut.length === 1 ? 'class' : 'classes'}`
+                : 'Import timetable'}
           </Button>
         </motion.div>
       )}

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Clock3, MapPin, Plus, Trash, Upload } from 'lucide-react';
+import { Clock3, Funnel, MapPin, Plus, Trash, Upload } from 'lucide-react';
 import { useApp, useLoad } from '../context.js';
 import { isoDate, toMinutes, WEEKDAYS } from '../lib/time.js';
 import TimetableImport from './TimetableImport.jsx';
+import LeaveOut from './LeaveOut.jsx';
 import { Button } from '../ui/Button.jsx';
 import { Card, EmptyState, ModuleBadge, PageHeader, Skeleton } from '../ui/primitives.jsx';
 import { Field, Input, ModuleSelect, Select } from '../ui/form.jsx';
@@ -17,6 +18,7 @@ export default function Timetable() {
   const dialogs = useDialogs();
   const [events, reload, error] = useLoad(() => db.list('class_events'), [db]);
   const [showImport, setShowImport] = useState(false);
+  const [showLeaveOut, setShowLeaveOut] = useState(false);
   const [adding, setAdding] = useState(null);
   const [selected, setSelected] = useState(null);
 
@@ -63,6 +65,11 @@ export default function Timetable() {
             <Button onClick={() => setShowImport(true)}>
               <Upload /> Import .ics
             </Button>
+            {current.length > 0 && (
+              <Button onClick={() => setShowLeaveOut(true)}>
+                <Funnel /> Leave out
+              </Button>
+            )}
             <Button variant="primary" onClick={() => setAdding({ title: '', module_id: null, kind: 'lecture', weekday: 1, start_time: '09:00', end_time: '10:00', location: '' })}>
               <Plus /> Class
             </Button>
@@ -108,6 +115,16 @@ export default function Timetable() {
         <TimetableImport
           onDone={() => {
             setShowImport(false);
+            reload();
+          }}
+        />
+      </Modal>
+
+      <Modal side="right" open={showLeaveOut} onOpenChange={setShowLeaveOut} title="Leave classes out" description="Say which classes to drop. You'll see the matches before anything is removed.">
+        <LeaveOut
+          events={current}
+          onDone={() => {
+            setShowLeaveOut(false);
             reload();
           }}
         />
