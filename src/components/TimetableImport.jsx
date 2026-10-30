@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { CalendarDays, Check, Sparkles, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { parseIcs } from '../lib/ics.js';
+import { parseIcs, parseTitle } from '../lib/ics.js';
 import { importTimetable } from '../lib/data.js';
 import { contributeModules } from '../lib/catalog.js';
 import { applyExclusions, describeRule, rulesFromText } from '../lib/exclusions.js';
@@ -54,6 +54,18 @@ export default function TimetableImport({ onDone }) {
     [slots, source, term],
   );
   const { kept, excluded } = useMemo(() => applyExclusions(dated, rules), [dated, rules]);
+
+  // Classes already in the timetable (e.g. from an earlier import), so "leave out" covers them too.
+  // Saved classes have no code column, so it comes from their module, or failing that their title.
+  const [existing, setExisting] = useState([]);
+  useEffect(() => {
+    if (!slots) return;
+    const codeOf = (e) => modules.find((m) => m.id === e.module_id)?.code ?? parseTitle(e.title).code;
+    db.list('class_events')
+      .then((rows) => setExisting(rows.filter((e) => e.kind !== 'busy').map((e) => ({ ...e, code: codeOf(e) }))))
+      .catch(() => setExisting([]));
+  }, [db, slots, modules]);
+  const alreadyOut = useMemo(() => applyExclusions(existing, rules).excluded.map((e) => e.slot), [existing, rules]);
 
   async function onFile(file) {
     setError(null);
@@ -116,7 +128,7 @@ export default function TimetableImport({ onDone }) {
       setParsing(false);
     }
     if (!found.length) return setError('I couldn’t find any classes to leave out in that.');
-    if (!applyExclusions(dated, found).excluded.length) {
+    if (!applyExclusions([...dated, ...existing], found).excluded.length) {
       return setError('That didn’t match any of your classes. Try a module code like MATH10200, a day, or a class type such as "tutorials".');
     }
     setRules((r) => [...r, ...found]);
@@ -126,13 +138,15 @@ export default function TimetableImport({ onDone }) {
   async function save() {
     setBusy(true);
     try {
+      for (const e of alreadyOut) await db.remove('class_events', e.id);
       const result = await importTimetable(db, kept, modules);
       // Share the module list with the student's course, so classmates get it suggested.
       await contributeModules(db, profile, result.moduleList, 'timetable');
       await reloadModules();
       setSlots(null);
       setRules([]);
-      toast.success(`Imported ${result.classes} classes`, { description: `${result.modules} modules are set up.` });
+      const removed = alreadyOut.length ? ` Removed ${alreadyOut.length} you asked to leave out.` : '';
+      toast.success(`Imported ${result.classes} classes`, { description: `${result.modules} modules are set up.${removed}` });
       onDone?.(result);
     } catch (err) {
       setError(err.message);
@@ -249,7 +263,23 @@ export default function TimetableImport({ onDone }) {
             </ul>
           )}
 
-          <Button variant="primary" disabled={busy || kept.length === 0} onClick={save} className="self-start">
+          {alreadyOut.length > 0 && (
+            <div className="flex flex-col gap-1 text-sm">
+              <p className="font-medium">Also removes {alreadyOut.length} matching {alreadyOut.length === 1 ? 'class' : 'classes'} already in your timetable</p>
+              <ul className="flex flex-col gap-1 text-muted">
+                {alreadyOut.map((e) => (
+                  <li key={e.id} className="flex gap-3 px-2 py-0.5 line-through">
+                    <span className="w-24 shrink-0 font-mono text-xs">
+                      {WEEKDAYS_SHORT[e.weekday]} {e.start_time}
+                    </span>
+                    <span className="truncate">{e.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <Button variant="primary" disabled={busy || (kept.length === 0 && alreadyOut.length === 0)} onClick={save} className="self-start">
             <Upload /> {busy ? 'Importing…' : 'Import timetable'}
           </Button>
         </motion.div>
