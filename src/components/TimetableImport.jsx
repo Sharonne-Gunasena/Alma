@@ -97,22 +97,28 @@ export default function TimetableImport({ onDone }) {
     setReadStatus(null);
   }
 
-  // Turns the instructions into rules. Without an AI key, or if the AI fails, simple word matching is used.
+  // Turns the instructions into rules. Codes, days and class types are read in code first, which is
+  // instant and needs no key; the AI is only asked when that finds nothing more specific than a name.
   async function addInstructions() {
     const text = instructions.trim();
     if (!text) return;
-    setParsing(true);
     setError(null);
+    let found = rulesFromText(text);
     const ai = activeAI();
-    let found;
-    try {
-      found = ai ? await parseExclusions(ai, text) : rulesFromText(text);
-    } catch {
-      found = rulesFromText(text);
-      toast('The AI couldn’t read that, so Alma matched your words directly.');
+    if (ai && (!found.length || found.some((r) => r.field === 'title'))) {
+      setParsing(true);
+      try {
+        const fromAI = await parseExclusions(ai, text);
+        if (fromAI.length) found = fromAI;
+      } catch {
+        toast('The AI couldn’t read that, so Alma matched your words directly.');
+      }
+      setParsing(false);
     }
-    setParsing(false);
     if (!found.length) return setError('I couldn’t find any classes to leave out in that.');
+    if (!applyExclusions(dated, found).excluded.length) {
+      return setError('That didn’t match any of your classes. Try a module code like MATH10200, a day, or a class type such as "tutorials".');
+    }
     setRules((r) => [...r, ...found]);
     setInstructions('');
   }

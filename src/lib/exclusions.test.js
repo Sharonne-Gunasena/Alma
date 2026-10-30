@@ -63,6 +63,38 @@ describe('rulesFromText', () => {
     ]);
   });
 
+  it('understands a plain sentence, ignoring words like "leave out"', () => {
+    const rules = rulesFromText('leave out math10200 tutorials');
+    expect(rules).toEqual([{ field: 'code', value: 'MATH10200', kind: 'tutorial' }]);
+    const timetable = [
+      { title: 'MATH10200: Matrix Algebra (Tutorial)', code: 'MATH10200', kind: 'tutorial', weekday: 1 },
+      { title: 'MATH10200: Matrix Algebra (Lecture)', code: 'MATH10200', kind: 'lecture', weekday: 2 },
+    ];
+    expect(applyExclusions(timetable, rules).kept.map((s) => s.kind)).toEqual(['lecture']);
+  });
+
+  it('combines a day with a class type', () => {
+    expect(rulesFromText("don't include Thursday tutorials")).toEqual([{ field: 'weekday', value: 'Thursday', kind: 'tutorial' }]);
+    const { excluded } = applyExclusions(slots, rulesFromText("don't include Thursday tutorials"));
+    expect(excluded.map((e) => e.slot.title)).toEqual(['COMP10330: Critical Thinking (Tutorial)']);
+  });
+
+  it('combines a module with a day', () => {
+    expect(rulesFromText('skip COMP10330 on Mondays')).toEqual([{ field: 'code', value: 'COMP10330', day: 'Mondays' }]);
+    const { excluded } = applyExclusions(slots, rulesFromText('skip COMP10330 on Mondays'));
+    expect(excluded.map((e) => e.slot.title)).toEqual(['COMP10330: Critical Thinking (Lecture)']);
+  });
+
+  it('splits on "and", and matches class names word by word', () => {
+    expect(rulesFromText('skip Thursdays and Italian')).toEqual([
+      { field: 'weekday', value: 'Thursdays' },
+      { field: 'title', value: 'Italian' },
+    ]);
+    expect(rulesFromText('leave out Databases labs')).toEqual([{ field: 'title', value: 'Databases', kind: 'lab' }]);
+    const { excluded } = applyExclusions(slots, rulesFromText('leave out Databases labs'));
+    expect(excluded.map((e) => e.slot.title)).toEqual(['Databases lab']);
+  });
+
   it('reads a module code with a class type as one rule', () => {
     expect(rulesFromText('COMP10330 tutorials')).toEqual([{ field: 'code', value: 'COMP10330', kind: 'tutorial' }]);
     const { kept, excluded } = applyExclusions(slots, rulesFromText('COMP10330 tutorials'));
@@ -81,5 +113,8 @@ describe('describeRule', () => {
     expect(describeRule({ field: 'code', value: 'COMP10330' })).toBe('code COMP10330');
     expect(describeRule({ field: 'kind', value: 'tutorial' })).toBe('all tutorials');
     expect(describeRule({ field: 'title', value: 'Italian' })).toBe('"Italian"');
+    expect(describeRule({ field: 'code', value: 'MATH10200', kind: 'tutorial' })).toBe('MATH10200 tutorials');
+    expect(describeRule({ field: 'weekday', value: 'Thursday', kind: 'tutorial' })).toBe('Thursday tutorials');
+    expect(describeRule({ field: 'code', value: 'COMP10330', day: 'mondays' })).toBe('code COMP10330 on Monday');
   });
 });
