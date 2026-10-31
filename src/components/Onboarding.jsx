@@ -218,7 +218,7 @@ export default function Onboarding() {
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium">Most study per day</span>
-                      <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{hours}h</span>
+                      <span className="font-mono font-semibold text-indigo-700 dark:text-indigo-400">{hours}h</span>
                     </div>
                     <input type="range" min="1" max="8" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="accent-indigo-600" />
                   </div>

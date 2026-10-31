@@ -84,7 +84,7 @@ export default function Guide({ materialId }) {
                   onClick={() => document.getElementById(`s${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   className={cn(
                     'relative rounded-lg py-1.5 pr-2 pl-4 text-left text-sm transition-colors',
-                    active === i ? 'font-medium text-indigo-600 dark:text-indigo-400' : 'text-muted hover:text-fg',
+                    active === i ? 'font-medium text-indigo-700 dark:text-indigo-400' : 'text-muted hover:text-fg',
                   )}
                 >
                   {active === i && <motion.span layoutId="toc" className="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-indigo-500" />}

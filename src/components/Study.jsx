@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ChevronLeft, Eye, FileText, Keyboard, Lightbulb, PenLine, RotateCcw, Sparkles, Trophy } from 'lucide-react';
 import { useApp } from '../context.js';
 import { describeInterval, isDue, schedule } from '../lib/srs.js';
@@ -9,7 +9,6 @@ import { CARD_TYPES } from '../ai/cardTypes.js';
 import { Button } from '../ui/Button.jsx';
 import { Card, IconTile, Kbd, ProgressBar, Segmented, Skeleton } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
-import { Tilt } from '../ui/motion.jsx';
 
 const RATINGS = [
   { id: 'again', label: 'Again', key: '1', tone: 'text-rose-600 dark:text-rose-400', ring: 'hover:border-rose-300 dark:hover:border-rose-500/50', dot: 'bg-rose-500' },
@@ -26,6 +25,18 @@ function shuffle(list) {
   }
   return a;
 }
+
+// Where a flick would come to rest (Apple's scroll-deceleration projection),
+// so a short fast swipe counts as much as a long slow drag.
+const project = (velocity, rate = 0.998) => ((velocity / 1000) * rate) / (1 - rate);
+const SWIPE = 140; // px past which a released swipe rates the card
+
+// Cards leave toward the side they were sent: left for Again/Hard, right for Good/Easy.
+const cardMotion = {
+  enter: { opacity: 0, y: 16, scale: 0.98 },
+  show: { opacity: 1, y: 0, x: 0, scale: 1, rotate: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  leave: (dir) => ({ opacity: 0, x: dir * 120, rotate: dir * 4, transition: { duration: 0.2 } }),
+};
 
 const savedAnswerMode = () => {
   try {
@@ -53,6 +64,8 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
   const [source, setSource] = useState(null);
   const [busy, setBusy] = useState(false);
   const [round, setRound] = useState(0); // changes the card key so repeats re-animate
+  const [leaveDir, setLeaveDir] = useState(-1);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     (async () => {
@@ -102,6 +115,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
       setQueue(rating === 'again' ? [...rest, { ...card, ...update }] : rest);
     }
     setTally((t) => ({ ...t, [rating]: t[rating] + 1 }));
+    setLeaveDir(rating === 'again' || rating === 'hard' ? -1 : 1);
     setRound((r) => r + 1);
     reset();
   }
@@ -141,6 +155,14 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
     const found = { name: material.name, page: card.source_page, text: page?.text ?? material.text_content?.slice(0, 2000) ?? '' };
     setSource(found);
     return found;
+  }
+
+  // Swipe a revealed card: left for Again, right for Good. Short of the
+  // threshold it springs back to the middle.
+  function onSwipeEnd(_, info) {
+    const landing = info.offset.x + project(info.velocity.x);
+    if (landing <= -SWIPE) rate('again');
+    else if (landing >= SWIPE) rate('good');
   }
 
   function setMode(m) {
@@ -201,38 +223,54 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
         <SessionComplete tally={tally} practice={practice} backHref={backHref} />
       ) : (
         <>
-          <div className="flex items-center justify-between gap-3">
-            <Segmented
-              value={typing ? 'type' : 'flip'}
-              onChange={(v) => (v === 'type' && !ai ? alert('Typed answers are graded by AI. Add a free key in Settings first.') : setMode(v))}
-              options={[
-                { value: 'flip', label: 'Flip', icon: RotateCcw },
-                { value: 'type', label: 'Type answer', icon: PenLine },
-              ]}
-            />
-            <span className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
-              <Keyboard className="size-3.5" /> <Kbd>Space</Kbd> flip · <Kbd>1</Kbd>–<Kbd>4</Kbd> rate
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <Segmented
+                value={typing ? 'type' : 'flip'}
+                onChange={setMode}
+                options={[
+                  { value: 'flip', label: 'Flip', icon: RotateCcw },
+                  { value: 'type', label: 'Type answer', icon: PenLine, disabled: !ai },
+                ]}
+              />
+              <span className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
+                <Keyboard className="size-3.5" /> <Kbd>Space</Kbd> flip · <Kbd>1</Kbd>–<Kbd>4</Kbd> rate
+              </span>
+            </div>
+            {!ai && (
+              <p className="text-xs text-muted">
+                Typed answers are graded by AI.{' '}
+                <a href="#/settings" className="font-medium text-indigo-700 dark:text-indigo-300">
+                  Add a free key in Settings
+                </a>{' '}
+                to use them.
+              </p>
+            )}
           </div>
 
-          <AnimatePresence mode="wait">
+          {/* popLayout: the next card arrives while the last one is still leaving. */}
+          <AnimatePresence mode="popLayout" custom={leaveDir}>
             <motion.div
               key={`${card.id}-${round}`}
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -60, rotate: -3, transition: { duration: 0.22 } }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              custom={leaveDir}
+              variants={reduce ? undefined : cardMotion}
+              initial={reduce ? { opacity: 0 } : 'enter'}
+              animate={reduce ? { opacity: 1 } : 'show'}
+              exit={reduce ? { opacity: 0, transition: { duration: 0.15 } } : 'leave'}
+              drag={flipped && !reduce ? 'x' : false}
+              dragSnapToOrigin
+              dragElastic={0.6}
+              onDragEnd={onSwipeEnd}
+              style={{ touchAction: 'pan-y' }}
               className="perspective"
             >
-              {/* The card leans toward the cursor; the flip happens inside it. */}
-              <Tilt max={4} light={false} className="preserve-3d">
               <motion.div
-                animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                animate={{ rotateY: flipped && !reduce ? 180 : 0 }}
+                transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
                 className="preserve-3d grid"
               >
-                {/* Front */}
-                <Face hidden={flipped}>
+                {/* Front: tap anywhere on the card to reveal (except while typing). */}
+                <Face hidden={flipped} flat={reduce} onReveal={typing ? undefined : () => setFlipped(true)}>
                   <Meta card={card} />
                   <p className="text-center text-2xl font-semibold tracking-tight text-balance whitespace-pre-wrap sm:text-[26px]">{card.front}</p>
                   {typing ? (
@@ -266,7 +304,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                 </Face>
 
                 {/* Back */}
-                <Face back hidden={!flipped}>
+                <Face back hidden={!flipped} flat={reduce}>
                   <Meta card={card} />
                   <p className="text-center text-sm text-muted text-balance whitespace-pre-wrap">{card.front}</p>
                   <div className="mx-auto h-px w-16 bg-line" />
@@ -310,25 +348,29 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                   </div>
                 </Face>
               </motion.div>
-              </Tilt>
             </motion.div>
           </AnimatePresence>
+          {flipped && !reduce && <p className="-mt-3 text-center text-xs text-muted sm:hidden">Swipe left for Again, right for Good</p>}
 
+          {/* On phones the ratings sit in a bar at the bottom, in reach of a thumb. */}
           <AnimatePresence>
             {flipped && (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                {RATINGS.map((r, i) => {
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="material grid grid-cols-4 gap-2 max-sm:fixed max-sm:inset-x-3 max-sm:bottom-3 max-sm:z-30 max-sm:rounded-2xl max-sm:border max-sm:border-line max-sm:bg-card/90 max-sm:p-2 max-sm:shadow-lift max-sm:backdrop-blur-xl sm:gap-2.5"
+                style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
+              >
+                {RATINGS.map((r) => {
                   const suggested = grade?.rating === r.id;
                   return (
                     <motion.button
                       key={r.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0, transition: { delay: 0.05 * i } }}
-                      whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => rate(r.id)}
                       className={cn(
-                        'relative flex flex-col items-center gap-1 rounded-2xl border border-line bg-card px-3 py-3.5 shadow-card transition-colors',
+                        'relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl border border-line bg-card px-2 py-3 shadow-card transition-colors sm:px-3 sm:py-3.5',
                         r.ring,
                         suggested && 'border-indigo-400 ring-4 ring-indigo-500/15',
                       )}
@@ -352,13 +394,18 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
 }
 
 // Both faces sit in the same grid cell; the hidden one ignores clicks.
-function Face({ back, hidden, children }) {
+// With reduced motion (`flat`) the faces cross-fade instead of turning over.
+function Face({ back, hidden, flat, onReveal, children }) {
   return (
     <div
       aria-hidden={hidden}
+      onClick={onReveal && !hidden ? onReveal : undefined}
       className={cn(
         'backface-hidden col-start-1 row-start-1 flex min-h-[340px] flex-col justify-center gap-6 rounded-3xl border border-line bg-card p-6 shadow-lift sm:p-10',
-        back && '[transform:rotateY(180deg)]',
+        back && !flat && '[transform:rotateY(180deg)]',
+        flat && 'transition-opacity duration-200',
+        flat && hidden && 'opacity-0',
+        onReveal && 'cursor-pointer',
         hidden && 'pointer-events-none',
       )}
     >

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CaptureUpdateAction, Excalidraw, reconcileElements } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { bindBoard } from '../lib/boardSync.js';
+import { isDark } from '../lib/theme.js';
 
 const UI_OPTIONS = {
   // Images aren't synced (they'd be too large for live messages); use the Files tab instead.
@@ -14,7 +15,7 @@ const UI_OPTIONS = {
 export default function WorkspaceBoard({ doc, name }) {
   const [api, setApi] = useState(null);
   const binding = useRef(null);
-  const dark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark = typeof window !== 'undefined' && isDark();
 
   useEffect(() => {
     if (!api) return;

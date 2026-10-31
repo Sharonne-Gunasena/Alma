@@ -156,7 +156,7 @@ export default function TimetableImport({ onDone }) {
       />
 
       <details className="group rounded-2xl bg-subtle px-4 py-3 text-sm">
-        <summary className="cursor-pointer font-medium text-indigo-600 marker:content-none dark:text-indigo-400">How do I get my timetable file?</summary>
+        <summary className="cursor-pointer font-medium text-indigo-700 marker:content-none dark:text-indigo-400">How do I get my timetable file?</summary>
         <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-muted">
           <li>
             Open{' '}

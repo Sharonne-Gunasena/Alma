@@ -124,7 +124,7 @@ function ModuleChecklist({ heading, items, picked, onToggle }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium">{heading}</p>
-        <button className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400" onClick={() => items.forEach((i) => onToggle(i, !allOn))}>
+        <button className="text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-400" onClick={() => items.forEach((i) => onToggle(i, !allOn))}>
           {allOn ? 'Clear all' : 'Select all'}
         </button>
       </div>
@@ -208,7 +208,7 @@ function WebsiteReader({ university, universities, courseName, picked, onToggle,
       <p className="text-sm text-muted">
         Paste the link to your course's page on the {university?.short_name ?? 'university'} website, the one that lists its modules. Alma reads the module codes and names from it.
       </p>
-      <a href={courseSearchLink(university, courseName)} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400">
+      <a href={courseSearchLink(university, courseName)} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-400">
         Find my course page <ExternalLink className="size-3.5" />
       </a>
       <form onSubmit={read} className="flex flex-col gap-2 sm:flex-row">
@@ -228,7 +228,7 @@ function WebsiteReader({ university, universities, courseName, picked, onToggle,
           </Button>
         </form>
       ) : (
-        <button type="button" onClick={() => setPasting(true)} className="w-fit text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+        <button type="button" onClick={() => setPasting(true)} className="w-fit text-sm font-medium text-indigo-700 hover:underline dark:text-indigo-400">
           Or paste the page text instead
         </button>
       )}

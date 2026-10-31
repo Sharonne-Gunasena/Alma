@@ -585,7 +585,7 @@ function Results({ attempt, save }) {
           </span>
         </ProgressRing>
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-[13px] font-medium text-indigo-600 dark:text-indigo-400">{attempt.title}</p>
+          <p className="text-[13px] font-medium text-indigo-700 dark:text-indigo-400">{attempt.title}</p>
           <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{pct >= 85 ? 'Excellent work' : pct >= 70 ? 'Solid result' : pct >= 50 ? 'Getting there' : 'Now you know what to work on'}</h1>
           <p className="text-[15px] text-muted">
             {fmtMark(earned)} of {qs.length} marks{took !== null ? ` · ${took} min` : ''} · {new Date(attempt.started_at).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -757,7 +757,7 @@ function QuestionReview({ q, n, onRemark }) {
           ) : (
             <>
               Marked by {q.marked_by === 'ai' ? 'AI' : 'you'}.
-              <button onClick={() => setChanging(true)} className="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+              <button onClick={() => setChanging(true)} className="font-medium text-indigo-700 hover:underline dark:text-indigo-400">
                 Change mark
               </button>
             </>

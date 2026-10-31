@@ -224,7 +224,7 @@ export default function ModuleView({ moduleId }) {
                               {m.page_count ?? '?'} pages{m.guide ? ` · ${m.guide.sections.length} topics` : ''}
                             </span>
                           </span>
-                          {m.guide && <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Study guide →</span>}
+                          {m.guide && <span className="text-xs font-medium text-indigo-700 dark:text-indigo-400">Study guide →</span>}
                         </a>
                       </li>
                     ))}
@@ -354,7 +354,7 @@ function Readiness({ r }) {
             ))}
           </ul>
           {r.topics.length > 6 && (
-            <button onClick={() => setAll(!all)} className="w-fit text-[13px] font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+            <button onClick={() => setAll(!all)} className="w-fit text-[13px] font-medium text-indigo-700 hover:underline dark:text-indigo-400">
               {all ? 'Show fewer topics' : `Show all ${r.topics.length} topics`}
             </button>
           )}
@@ -369,7 +369,7 @@ function Readiness({ r }) {
                 {a.kind === 'exam' ? <ClipboardCheck className="size-3.5" /> : a.kind === 'due' ? <Layers className="size-3.5" /> : <Sparkles className="size-3.5" />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium group-hover:text-indigo-600">{a.label}</span>
+                <span className="block text-sm font-medium group-hover:text-indigo-700">{a.label}</span>
                 <span className="block text-xs text-muted">{a.detail}</span>
               </span>
               <ArrowRight className="mt-1 size-3.5 shrink-0 text-muted" />

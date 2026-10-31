@@ -2,15 +2,15 @@
 import { motion } from 'motion/react';
 import { cn } from './cn.js';
 import { useApp } from '../context.js';
-import { RevealText, trackSpotlight } from './motion.jsx';
+import { trackSpotlight } from './motion.jsx';
 
-// Interactive cards lift on hover and light up where the cursor is.
+// Interactive cards light up where the cursor is (the app's one pointer effect).
 export function Card({ className, interactive, as: Tag = 'div', ...props }) {
   return (
     <Tag
       className={cn(
         'rounded-2xl border border-line bg-card shadow-card',
-        interactive && 'spotlight transition-all duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lift dark:hover:border-indigo-500/40',
+        interactive && 'spotlight transition-[border-color,box-shadow] duration-300 hover:border-indigo-200 hover:shadow-lift dark:hover:border-indigo-500/40',
         className,
       )}
       onPointerMove={interactive ? trackSpotlight : undefined}
@@ -34,7 +34,7 @@ export function CardHeader({ title, icon: Icon, action, className }) {
 // The small label above a heading: an amber marker plus indigo text.
 export function Eyebrow({ children, className }) {
   return (
-    <p className={cn('flex items-center gap-2 text-[13px] font-medium text-indigo-600 dark:text-indigo-400', className)}>
+    <p className={cn('flex items-center gap-2 text-[13px] font-medium text-indigo-700 dark:text-indigo-400', className)}>
       <span className="size-1.5 rotate-45 rounded-[1px] bg-sky-400" aria-hidden />
       {children}
     </p>
@@ -125,7 +125,7 @@ export function Kbd({ children }) {
   );
 }
 
-// Pill-style toggle between a few options.
+// Pill-style toggle between a few options. An option can be `disabled`.
 export function Segmented({ options, value, onChange, className }) {
   return (
     <div className={cn('inline-flex rounded-full border border-line bg-subtle p-1', className)}>
@@ -133,14 +133,16 @@ export function Segmented({ options, value, onChange, className }) {
         <button
           key={o.value}
           type="button"
+          disabled={o.disabled}
+          aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            'relative flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors [&_svg]:size-3.5',
-            value === o.value ? 'text-fg' : 'text-muted hover:text-fg',
+            'relative flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:size-3.5',
+            value === o.value ? 'text-fg' : 'text-muted enabled:hover:text-fg',
           )}
         >
           {value === o.value && (
-            <motion.span layoutId={`seg-${options.map((x) => x.value).join()}`} className="absolute inset-0 rounded-full bg-card shadow-card" transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }} />
+            <motion.span layoutId={`seg-${options.map((x) => x.value).join()}`} className="absolute inset-0 rounded-full bg-card shadow-card" transition={{ type: 'spring', bounce: 0, duration: 0.35 }} />
           )}
           <span className="relative flex items-center gap-1.5">
             {o.icon && <o.icon />}
@@ -167,7 +169,7 @@ export function PageHeader({ eyebrow, title, description, actions, children }) {
     <motion.header variants={fadeUp} initial="hidden" animate="show" className="flex flex-wrap items-end justify-between gap-5">
       <div className="flex max-w-2xl min-w-0 flex-col gap-2.5">
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <RevealText as="h1" text={title} className="text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl" />
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl">{title}</h1>
         {description && <p className="text-[15px] text-muted text-pretty">{description}</p>}
         {children}
       </div>

@@ -154,7 +154,7 @@ function Editor({ guide, section }) {
       extensions,
       content: guide.content,
       shouldRerenderOnTransaction: true,
-      editorProps: { attributes: { class: 'prose prose-slate dark:prose-invert max-w-none prose-headings:tracking-tight prose-h2:mt-8 prose-a:text-indigo-600' } },
+      editorProps: { attributes: { class: 'prose prose-slate dark:prose-invert max-w-none prose-headings:tracking-tight prose-h2:mt-8 prose-a:text-indigo-700' } },
       onUpdate: ({ editor }) => handlers.current.update(editor.getJSON()),
     },
     [],
@@ -330,7 +330,7 @@ function Editor({ guide, section }) {
 
       <AnimatePresence>
         {busy && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="no-print flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="no-print flex items-center gap-2 text-sm text-indigo-700 dark:text-indigo-400">
             <Sparkles className="size-4 animate-pulse" /> {busy}
           </motion.p>
         )}
@@ -345,12 +345,12 @@ function Editor({ guide, section }) {
               <ToolButton icon={Highlighter} label="Highlight" active={editor.isActive('highlight')} onClick={() => editor.chain().focus().toggleHighlight().run()} />
               <ToolButton icon={Link2} label="Link" active={editor.isActive('link')} onClick={addLink} />
               <span className="mx-1 h-5 w-px bg-line" />
-              <button onClick={explain} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-soft dark:text-indigo-400">
+              <button onClick={explain} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-soft dark:text-indigo-400">
                 <Lightbulb className="size-3.5" /> Explain
               </button>
               <button
                 onClick={() => setMakeCards({ anchors: [], selection: selectionText })}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-soft dark:text-indigo-400"
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-soft dark:text-indigo-400"
               >
                 <Layers className="size-3.5" /> Cards
               </button>
@@ -373,7 +373,7 @@ function Editor({ guide, section }) {
                     {counts[s.anchor]}
                   </Pill>
                 ) : (
-                  <button onClick={() => setMakeCards({ anchors: [s.anchor] })} title="Make flashcards from this section" className="shrink-0 rounded-md p-1 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-indigo-600">
+                  <button onClick={() => setMakeCards({ anchors: [s.anchor] })} title="Make flashcards from this section" className="shrink-0 rounded-md p-1 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-indigo-700">
                     <Layers className="size-3.5" />
                   </button>
                 )}
@@ -455,7 +455,7 @@ export function Toolbar({ editor, onImage, onLink, onMath }) {
       <Menu
         align="start"
         trigger={
-          <button title="Study block" className={cn('flex h-8 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-medium', toneActive ? 'bg-soft text-indigo-600 dark:text-indigo-300' : 'text-muted hover:bg-subtle hover:text-fg')}>
+          <button title="Study block" className={cn('flex h-8 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-medium', toneActive ? 'bg-soft text-indigo-700 dark:text-indigo-300' : 'text-muted hover:bg-subtle hover:text-fg')}>
             <Lightbulb className="size-4" /> Block <ChevronDown className="size-3.5" />
           </button>
         }
@@ -601,7 +601,7 @@ function MakeCardsDialog({ request, onClose, guide, outline, onSaved }) {
       }
     >
       {busy && (
-        <p className="mb-4 flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
+        <p className="mb-4 flex items-center gap-2 text-sm text-indigo-700 dark:text-indigo-400">
           <Sparkles className="size-4 animate-pulse" /> {busy}
         </p>
       )}
@@ -691,7 +691,7 @@ function QuizDialog({ questions, onClose }) {
                 {q.answer}
               </motion.p>
             ) : (
-              <button onClick={() => setShown(new Set([...shown, i]))} className="mt-2 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+              <button onClick={() => setShown(new Set([...shown, i]))} className="mt-2 text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-400">
                 Show answer
               </button>
             )}

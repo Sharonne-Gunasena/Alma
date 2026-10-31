@@ -226,7 +226,7 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
                   <Textarea autoFocus className="min-h-40" value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="Lecture notes, a textbook section…" />
                 </Field>
               ) : (
-                <button className="w-fit text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400" onClick={() => setPasting(true)}>
+                <button className="w-fit text-sm font-medium text-indigo-700 hover:underline dark:text-indigo-400" onClick={() => setPasting(true)}>
                   Or paste text instead
                 </button>
               ))}
@@ -463,7 +463,7 @@ export default function Create({ moduleId: initialModule, deckId: initialDeck })
               <p className="font-medium">{ai ? ai.info.label : 'No AI key yet'}</p>
               <p className="truncate text-muted">{ai ? ai.model : 'Free keys from Gemini or Groq'}</p>
             </div>
-            <a href="#/settings" className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+            <a href="#/settings" className="text-xs font-medium text-indigo-700 dark:text-indigo-400">
               Change
             </a>
           </Card>

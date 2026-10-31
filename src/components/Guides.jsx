@@ -239,7 +239,7 @@ function NewGuideSheet({ open, onClose, defaultModule, lectures }) {
               ))}
             </ul>
             {busy && (
-              <p className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
+              <p className="flex items-center gap-2 text-sm text-indigo-700 dark:text-indigo-400">
                 <Sparkles className="size-4 animate-pulse" /> Drafting your guide…
               </p>
             )}

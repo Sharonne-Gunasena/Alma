@@ -8,6 +8,10 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* Dark mode follows data-theme on <html>, which lib/theme.js sets from the
+   Appearance setting (Automatic follows the system). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 @theme {
   --font-sans: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
@@ -76,16 +80,25 @@
   --cl-subtle: #f0f7fd;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
+:root[data-theme='dark'] {
+  --cl-bg: #120d0b;
+  --cl-card: #1c1512;
+  --cl-fg: #f6ece6;
+  --cl-muted: #a8958c;
+  --cl-line: #33261f;
+  --cl-soft: #2e1a10;
+  --cl-subtle: #16212b;
+  color-scheme: dark;
+}
+/* Higher contrast: darker secondary text and stronger dividers. */
+@media (prefers-contrast: more) {
   :root {
-    --cl-bg: #120d0b;
-    --cl-card: #1c1512;
-    --cl-fg: #f6ece6;
-    --cl-muted: #a8958c;
-    --cl-line: #33261f;
-    --cl-soft: #2e1a10;
-    --cl-subtle: #16212b;
-    color-scheme: dark;
+    --cl-muted: #5a4a43;
+    --cl-line: #d9c4b8;
+  }
+  :root[data-theme='dark'] {
+    --cl-muted: #cdbcb3;
+    --cl-line: #5a463c;
   }
 }
 
@@ -208,10 +221,8 @@ body {
     background: radial-gradient(closest-side, rgb(248 113 113 / 0.12), transparent);
     animation: drift-c 40s ease-in-out infinite alternate;
   }
-  @media (prefers-color-scheme: dark) {
-    .aurora {
-      opacity: 0.55;
-    }
+  [data-theme='dark'] .aurora {
+    opacity: 0.55;
   }
   @media (prefers-reduced-motion: reduce) {
     .aurora-blob {
@@ -219,6 +230,14 @@ body {
     }
     .btn-sheen::after {
       display: none;
+    }
+  }
+
+  /* Translucent bars become solid for people who ask for less transparency. */
+  @media (prefers-reduced-transparency: reduce) {
+    .material {
+      background: var(--cl-card) !important;
+      backdrop-filter: none !important;
     }
   }
 

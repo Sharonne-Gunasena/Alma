@@ -356,7 +356,7 @@ function FilesPanel({ ws }) {
         {(files ?? []).map((f) => (
           <div key={f.name} className="flex items-center gap-3 px-4 py-3">
             <Paperclip className="size-4 shrink-0 text-muted" />
-            <button className="min-w-0 flex-1 truncate text-left text-sm font-medium hover:text-indigo-600" onClick={async () => window.open(await workspaceApi.fileUrl(ws.id, f.name), '_blank', 'noopener')}>
+            <button className="min-w-0 flex-1 truncate text-left text-sm font-medium hover:text-indigo-700" onClick={async () => window.open(await workspaceApi.fileUrl(ws.id, f.name), '_blank', 'noopener')}>
               {displayFileName(f.name)}
             </button>
             <span className="shrink-0 text-xs text-muted">{f.metadata?.size ? `${Math.max(1, Math.round(f.metadata.size / 1024))} KB` : ''}</span>

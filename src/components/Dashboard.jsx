@@ -36,7 +36,7 @@ import {
 import { Button } from '../ui/Button.jsx';
 import { Card, CardHeader, EmptyState, Eyebrow, IconTile, ModuleBadge, ProgressBar, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
-import { CountUp, Reveal, RevealText, Tilt } from '../ui/motion.jsx';
+import { CountUp, Reveal, RevealText } from '../ui/motion.jsx';
 
 const minutesOf = (d) => d.getHours() * 60 + d.getMinutes();
 
@@ -150,7 +150,7 @@ export default function Dashboard() {
           <Button variant="secondary" href="#/planner?new=1">
             <Plus /> Deadline
           </Button>
-          <Button variant="primary" href="#/create">
+          <Button variant="primary" href="#/create" className="btn-sheen">
             <Sparkles /> Lecture → flashcards
           </Button>
         </div>
@@ -182,25 +182,29 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      {/* Four across only when there's room, so labels never wrap and numbers share a baseline. */}
+      <section className="grid grid-cols-2 gap-3 lg:gap-4 xl:grid-cols-4">
         <Stat i={0} href="#/study?mode=due" icon={Layers} label="Cards due" value={dueCount} hint={dueCount ? 'Review now' : 'All caught up'} />
-        <Stat i={1} href="#/planner" icon={Clock3} label="Study today" value={studyToday} format={(m) => formatHours(Math.round(m))} hint={`${formatHours(plan.stats.remainingMinutes)} of work left`} tone="emerald" />
+        <Stat
+          i={1}
+          href="#/planner"
+          icon={Clock3}
+          label="Study today"
+          value={studyToday}
+          format={(m) => formatHours(Math.round(m))}
+          hint={plan.stats.remainingMinutes ? `${formatHours(plan.stats.remainingMinutes)} of work left` : 'Nothing planned. Add a deadline'}
+          tone="emerald"
+        />
         <Stat i={2} href="#/planner" icon={CalendarClock} label="Due this week" value={dueThisWeek.length} hint={dueThisWeek[0] ? `Next: ${dueThisWeek[0].title}` : 'Nothing due'} tone="amber" />
-        <motion.div custom={3} variants={fadeUp} initial="hidden" animate="show">
-          <Card className="flex h-full flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 lg:p-5">
-            <ProgressRing value={effort ? done / effort : 0} size={56} stroke={6}>
-              <span className="font-mono text-xs font-semibold">
-                <CountUp value={effort ? Math.round((done / effort) * 100) : 0} format={(n) => `${Math.round(n)}%`} />
-              </span>
-            </ProgressRing>
-            <div className="min-w-0">
-              <p className="text-[13px] text-muted">Coursework</p>
-              <p className="truncate text-sm font-medium">
-                {done.toFixed(done % 1 ? 1 : 0)}h of {effort}h done
-              </p>
-            </div>
-          </Card>
-        </motion.div>
+        <Stat
+          i={3}
+          href="#/planner"
+          label="Coursework"
+          value={effort ? Math.round((done / effort) * 100) : null}
+          format={(n) => `${Math.round(n)}%`}
+          hint={effort ? `${done.toFixed(done % 1 ? 1 : 0)}h of ${effort}h done` : 'No coursework yet'}
+          ring={effort ? done / effort : 0}
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
@@ -210,7 +214,7 @@ export default function Dashboard() {
             title="Today"
             icon={Target}
             action={
-              <a href="#/planner" className="flex items-center gap-1 text-[13px] font-medium text-indigo-600 no-underline hover:gap-1.5 dark:text-indigo-400">
+              <a href="#/planner" className="flex items-center gap-1 text-[13px] font-medium text-indigo-700 no-underline hover:gap-1.5 dark:text-indigo-400">
                 Planner <ArrowRight className="size-3.5 transition-all" />
               </a>
             }
@@ -263,7 +267,7 @@ export default function Dashboard() {
                           </>
                         )}
                         {item.kind === 'review' && (
-                          <a href="#/study?mode=due" className="text-sm font-medium text-fg no-underline hover:text-indigo-600">
+                          <a href="#/study?mode=due" className="text-sm font-medium text-fg no-underline hover:text-indigo-700">
                             Flashcard review <span className="font-normal text-muted">· {dueCount} due</span>
                           </a>
                         )}
@@ -330,7 +334,7 @@ export default function Dashboard() {
               weak.map((t) => (
                 <a key={t.topic} href={`#/decks/${t.deck_id}/study?mode=topic&topic=${encodeURIComponent(t.topic)}`} className="group flex flex-col gap-1.5 text-fg no-underline">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="truncate font-medium group-hover:text-indigo-600">{t.topic}</span>
+                    <span className="truncate font-medium group-hover:text-indigo-700">{t.topic}</span>
                     <span className="font-mono text-xs text-muted">{Math.round(t.accuracy * 100)}%</span>
                   </div>
                   <ProgressBar value={t.accuracy} tone={t.accuracy < 0.6 ? 'rose' : 'amber'} />
@@ -379,23 +383,19 @@ export default function Dashboard() {
 }
 
 // Numbers count up on load; the card tilts toward the cursor.
-function Stat({ icon, label, value, format, hint, href, tone = 'indigo', i }) {
+// One layout for every stat: label and icon (or ring) on top, the number, then a hint.
+// A null value shows a dash rather than a misleading zero.
+function Stat({ icon, label, value, format, hint, href, tone = 'indigo', ring, i }) {
   return (
     <motion.div custom={i} variants={fadeUp} initial="hidden" animate="show" className="h-full">
-      <Tilt
-        as="a"
-        href={href}
-        className="flex h-full flex-col gap-3 rounded-2xl border border-line bg-card p-4 text-fg no-underline shadow-card transition-shadow duration-300 hover:shadow-lift lg:p-5"
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-[13px] text-muted">{label}</span>
-          <IconTile icon={icon} size="sm" tone={tone} />
+      <Card as="a" href={href} interactive className="flex h-full flex-col gap-3 p-4 text-fg no-underline lg:p-5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-[13px] text-muted">{label}</span>
+          {ring !== undefined ? <ProgressRing value={ring} size={32} stroke={4} /> : <IconTile icon={icon} size="sm" tone={tone} />}
         </div>
-        <p className="text-3xl font-semibold tracking-tight">
-          <CountUp value={value} format={format} />
-        </p>
+        <p className="text-3xl font-semibold tracking-tight">{value === null ? <span className="text-muted">–</span> : <CountUp value={value} format={format} />}</p>
         <p className="truncate text-xs text-muted">{hint}</p>
-      </Tilt>
+      </Card>
     </motion.div>
   );
 }
@@ -417,7 +417,7 @@ function UpNext({ item, nowMin, moduleById, dueCount }) {
         <span className="relative inline-flex size-2.5 rounded-full bg-indigo-500" />
       </span>
       <div className="min-w-0 text-sm">
-        <span className="font-medium text-indigo-600 dark:text-indigo-400">{when}</span>
+        <span className="font-medium text-indigo-700 dark:text-indigo-400">{when}</span>
         <span className="text-muted"> · </span>
         <span className="font-medium">{title}</span>
         {where && <span className="text-muted"> · {where}</span>}
@@ -493,7 +493,7 @@ function WeekChart({ plan, classEvents, now }) {
               <motion.div className="w-full bg-indigo-500 group-hover:bg-indigo-400" initial={{ height: 0 }} animate={{ height: `${(study / max) * 100}%` }} transition={{ delay: i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
               <motion.div className="w-full bg-slate-300 dark:bg-slate-600" initial={{ height: 0 }} animate={{ height: `${(classes / max) * 100}%` }} transition={{ delay: i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
             </div>
-            <span className={cn('text-[11px]', i === 0 ? 'font-semibold text-indigo-600 dark:text-indigo-400' : 'text-muted')}>{WEEKDAYS_SHORT[d.getDay()]}</span>
+            <span className={cn('text-[11px]', i === 0 ? 'font-semibold text-indigo-700 dark:text-indigo-400' : 'text-muted')}>{WEEKDAYS_SHORT[d.getDay()]}</span>
           </a>
         ))}
       </div>
@@ -517,7 +517,7 @@ function DashboardSkeleton() {
         <Skeleton className="h-12 w-80 max-w-full" />
         <Skeleton className="h-4 w-64" />
       </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-32 rounded-2xl" />
         ))}

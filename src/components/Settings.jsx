@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Brain, Check, ExternalLink, Eye, EyeOff, KeyRound, LogOut, RotateCcw, Sparkles, Trophy, UserRound, Zap } from 'lucide-react';
+import { Brain, Check, ExternalLink, Eye, EyeOff, KeyRound, LogOut, Monitor, Moon, RotateCcw, Sparkles, Sun, Trophy, UserRound, Zap } from 'lucide-react';
 import { hubApi } from '../lib/hubs.js';
 import { badgeFor, nextBadge } from '../lib/hubRules.js';
 import { PROVIDERS, listModels } from '../ai/providers.js';
 import { prefs } from '../lib/prefs.js';
 import { useApp, useLoad } from '../context.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, CardHeader, PageHeader, Pill } from '../ui/primitives.jsx';
+import { Card, CardHeader, PageHeader, Pill, Segmented } from '../ui/primitives.jsx';
+import { getTheme, setTheme } from '../lib/theme.js';
 import { ChoiceCard, Field, Input, Select } from '../ui/form.jsx';
 import { useDialogs } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
@@ -18,6 +19,7 @@ export default function Settings() {
   const { db, profile, reloadProfile, user, signOut } = useApp();
   const dialogs = useDialogs();
   const [provider, setProvider] = useState(prefs.getProvider());
+  const [theme, setThemeState] = useState(getTheme);
   const [form, setForm] = useState({ display_name: profile?.display_name ?? '', university: profile?.university ?? '', course: profile?.course ?? '', year: profile?.year ?? 1 });
 
   async function saveProfile(e) {
@@ -103,6 +105,26 @@ export default function Settings() {
                 Save profile
               </Button>
             </form>
+          </Card>
+
+          <Card className="flex flex-col gap-4 p-5">
+            <div>
+              <h2 className="text-[15px] font-semibold tracking-tight">Appearance</h2>
+              <p className="mt-1 text-sm text-muted">Automatic follows your device's light or dark setting.</p>
+            </div>
+            <Segmented
+              value={theme}
+              onChange={(v) => {
+                setThemeState(v);
+                setTheme(v);
+              }}
+              options={[
+                { value: 'system', label: 'Automatic', icon: Monitor },
+                { value: 'light', label: 'Light', icon: Sun },
+                { value: 'dark', label: 'Dark', icon: Moon },
+              ]}
+              className="w-fit"
+            />
           </Card>
 
           {user && <ContributionCard />}

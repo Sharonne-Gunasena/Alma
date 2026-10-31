@@ -55,7 +55,7 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
         <div />
         {columns.map((c) => (
           <div key={c.key} className="flex flex-col items-center pb-2">
-            <span className={cn('text-xs font-medium', c.today ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted')}>{c.label}</span>
+            <span className={cn('text-xs font-medium', c.today ? 'text-indigo-700 dark:text-indigo-400' : 'text-muted')}>{c.label}</span>
             {c.sub != null && (
               <span className={cn('mt-0.5 grid size-7 place-items-center rounded-full text-sm font-semibold', c.today ? 'bg-indigo-600 text-white' : 'text-fg')}>{c.sub}</span>
             )}
