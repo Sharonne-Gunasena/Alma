@@ -1,15 +1,14 @@
 // Motion pieces shared across pages: masked text reveals, count-up numbers,
-// pointer-reactive tilt and light, and scroll reveals.
+// the cursor light for .spotlight, and scroll reveals.
 //
 // Rules: animate only transform and opacity (cheap for the GPU), never block
 // input, and respect "reduce motion". Pointer effects only run on devices
 // with a precise pointer, so phones get the plain, fast version.
 import { useEffect, useRef } from 'react';
-import { animate, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
+import { animate, motion, useReducedMotion } from 'motion/react';
 import { cn } from './cn.js';
 
 const EASE = [0.22, 1, 0.36, 1];
-export const finePointer = () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 // Words slide up from behind a mask, one after another.
 export function RevealText({ text, as: Tag = 'span', className, delay = 0, stagger = 0.045 }) {
@@ -53,46 +52,6 @@ export function CountUp({ value, format = (n) => Math.round(n).toString(), durat
     <span ref={ref} className={cn('tabular-nums', className)}>
       {typeof value === 'number' ? format(reduce ? value : 0) : value}
     </span>
-  );
-}
-
-// Tilts toward the pointer with spring physics and lights up where it's
-// pointing (via --mx/--my, used by the .spotlight class in index.css).
-export function Tilt({ children, className, max = 5, as = 'div', light = true, ...props }) {
-  const reduce = useReducedMotion();
-  const px = useMotionValue(0.5);
-  const py = useMotionValue(0.5);
-  const spring = { stiffness: 220, damping: 22, mass: 0.6 };
-  const rotateX = useSpring(useTransform(py, [0, 1], [max, -max]), spring);
-  const rotateY = useSpring(useTransform(px, [0, 1], [-max, max]), spring);
-  const Comp = motion[as];
-
-  function onPointerMove(e) {
-    if (e.pointerType !== 'mouse') return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width;
-    const y = (e.clientY - r.top) / r.height;
-    px.set(x);
-    py.set(y);
-    e.currentTarget.style.setProperty('--mx', `${x * 100}%`);
-    e.currentTarget.style.setProperty('--my', `${y * 100}%`);
-  }
-  function onPointerLeave() {
-    px.set(0.5);
-    py.set(0.5);
-  }
-
-  if (reduce) return <Comp className={className} {...props}>{children}</Comp>;
-  return (
-    <Comp
-      className={cn(light && 'spotlight', className)}
-      style={{ rotateX, rotateY, transformPerspective: 900 }}
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
-      {...props}
-    >
-      {children}
-    </Comp>
   );
 }
 

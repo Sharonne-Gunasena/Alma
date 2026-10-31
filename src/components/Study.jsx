@@ -375,7 +375,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                         suggested && 'border-indigo-400 ring-4 ring-indigo-500/15',
                       )}
                     >
-                      {suggested && <span className="absolute -top-2.5 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold text-white">Suggested</span>}
+                      {suggested && <span className="absolute -top-2.5 rounded-full bg-indigo-700 px-2 py-0.5 text-[10px] font-semibold text-white">Suggested</span>}
                       <span className={cn('flex items-center gap-1.5 text-sm font-semibold', r.tone)}>
                         <span className={cn('size-1.5 rounded-full', r.dot)} />
                         {r.label}

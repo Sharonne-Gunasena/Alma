@@ -57,7 +57,7 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
           <div key={c.key} className="flex flex-col items-center pb-2">
             <span className={cn('text-xs font-medium', c.today ? 'text-indigo-700 dark:text-indigo-400' : 'text-muted')}>{c.label}</span>
             {c.sub != null && (
-              <span className={cn('mt-0.5 grid size-7 place-items-center rounded-full text-sm font-semibold', c.today ? 'bg-indigo-600 text-white' : 'text-fg')}>{c.sub}</span>
+              <span className={cn('mt-0.5 grid size-7 place-items-center rounded-full text-sm font-semibold', c.today ? 'bg-indigo-700 text-white' : 'text-fg')}>{c.sub}</span>
             )}
           </div>
         ))}
@@ -110,7 +110,7 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
 
 const STYLES = {
   class: 'bg-[color-mix(in_srgb,var(--c)_14%,var(--cl-card))] border-l-[3px] border-[var(--c)] text-fg',
-  session: 'bg-indigo-600 text-white shadow-glow hover:bg-indigo-500',
+  session: 'bg-indigo-700 text-white shadow-glow hover:bg-indigo-800',
   review: 'bg-emerald-500/15 border-l-[3px] border-emerald-500 text-emerald-900 dark:text-emerald-200',
   busy: 'border border-dashed border-slate-400/60 text-muted [background:repeating-linear-gradient(135deg,transparent_0,transparent_6px,rgb(148_163_184/0.15)_6px,rgb(148_163_184/0.15)_12px)]',
 };

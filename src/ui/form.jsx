@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { forwardRef, useState } from 'react';
+import { ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { cn } from './cn.js';
 import { useApp } from '../context.js';
 
@@ -20,6 +20,25 @@ export function Field({ label, hint, children, className }) {
 export const Input = forwardRef(function Input({ className, ...props }, ref) {
   return <input ref={ref} className={cn(field, 'h-10 py-0', className)} {...props} />;
 });
+
+// A password field with a show/hide button inside it.
+export function PasswordInput({ className, ...props }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input type={shown ? 'text' : 'password'} className={cn(field, 'h-10 py-0 pr-11', className)} {...props} />
+      <button
+        type="button"
+        onClick={() => setShown((s) => !s)}
+        aria-label={shown ? 'Hide password' : 'Show password'}
+        aria-pressed={shown}
+        className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-xl text-muted hover:text-fg"
+      >
+        {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
+}
 
 export const Textarea = forwardRef(function Textarea({ className, ...props }, ref) {
   return <textarea ref={ref} className={cn(field, 'min-h-24 resize-y leading-relaxed', className)} {...props} />;
@@ -100,7 +119,7 @@ export function ChoiceCard({ selected, onSelect, icon: Icon, title, description,
       )}
     >
       {Icon && (
-        <span className={cn('grid size-9 shrink-0 place-items-center rounded-xl', selected ? 'bg-indigo-600 text-white' : 'bg-subtle text-muted')}>
+        <span className={cn('grid size-9 shrink-0 place-items-center rounded-xl', selected ? 'bg-indigo-700 text-white' : 'bg-subtle text-muted')}>
           <Icon className="size-[18px]" />
         </span>
       )}

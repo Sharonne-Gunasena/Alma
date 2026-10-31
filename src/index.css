@@ -31,8 +31,6 @@
 
   /* A warm near-black for tooltips, chips and dark panels. */
   --color-ink: #1f1411;
-  --color-ink-2: #2a1c17;
-  --color-ink-3: #3a2620;
 
   --shadow-card: 0 1px 2px rgb(68 32 16 / 0.04), 0 8px 24px -12px rgb(68 32 16 / 0.12);
   --shadow-lift: 0 2px 4px rgb(68 32 16 / 0.05), 0 18px 40px -18px rgb(194 65 12 / 0.3);

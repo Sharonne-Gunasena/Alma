@@ -74,6 +74,17 @@ export default function Shell({ route, children }) {
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[76px_1fr] lg:grid-cols-[248px_1fr]">
+      {/* Skip link for keyboard users. It focuses <main> directly, because a #main href would change the hash route. */}
+      <a
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('main')?.focus();
+        }}
+        className="sr-only z-50 rounded-xl bg-card px-4 py-2 text-sm font-medium text-fg shadow-lift focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to content
+      </a>
       <Aurora />
       {/* Sidebar: icon rail on tablets, full width on desktop. */}
       <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-line bg-card px-3 py-5 text-muted md:flex lg:px-4">
@@ -123,7 +134,7 @@ export default function Shell({ route, children }) {
             <span className="hidden lg:inline">Settings</span>
           </a>
           <div className="mt-2 flex items-center gap-3 rounded-2xl bg-subtle p-2.5 ring-1 ring-sky-100 max-lg:justify-center dark:ring-sky-500/10">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-[13px] font-semibold text-white">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange-700 to-red-600 text-[13px] font-semibold text-white">
               {initials(name) || 'G'}
             </span>
             <div className="hidden min-w-0 flex-1 lg:block">
@@ -153,7 +164,7 @@ export default function Shell({ route, children }) {
           </a>
         </header>
 
-        <main className={cn('mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 md:pb-12 lg:px-10 lg:pt-10', focused ? 'pb-36' : 'pb-32')}>
+        <main id="main" tabIndex={-1} className={cn('mx-auto w-full max-w-6xl px-4 pt-6 outline-none sm:px-6 md:pb-12 lg:px-10 lg:pt-10', focused ? 'pb-36' : 'pb-32')}>
           {!user && !hideBanner && !focused && (
             <div className="mb-6 flex items-center gap-2 rounded-2xl border border-indigo-200/60 bg-soft py-1 pr-1 pl-4 text-[13px] text-indigo-900 dark:border-indigo-500/20 dark:text-indigo-200">
               <span className="size-1.5 shrink-0 rounded-full bg-sky-500" />

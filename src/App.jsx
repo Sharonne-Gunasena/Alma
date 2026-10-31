@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'sonner';
 import { MotionConfig } from 'motion/react';
-import { supabase } from './supabase.js';
+import { openedRecoveryLink, supabase } from './supabase.js';
 import { cloudDb, localDb } from './lib/db.js';
 import { listModules } from './lib/data.js';
 import { prefs } from './lib/prefs.js';
@@ -31,6 +31,11 @@ const Workspaces = lazy(() => import('./components/Workspaces.jsx'));
 const Workspace = lazy(() => import('./components/Workspace.jsx'));
 const Hub = lazy(() => import('./components/Hub.jsx'));
 const Settings = lazy(() => import('./components/Settings.jsx'));
+const Legal = lazy(() => import('./components/Legal.jsx'));
+const SetPassword = lazy(() => import('./components/SetPassword.jsx'));
+
+// Pages anyone can open, signed in or not.
+const PUBLIC_PAGES = ['privacy', 'cookies', 'terms'];
 
 const FullScreenLoading = () => <div className="grid min-h-screen place-items-center text-sm text-muted">Loading…</div>;
 
@@ -47,11 +52,15 @@ export default function App() {
   const [guest, setGuest] = useState(prefs.isGuest());
   const [profile, setProfile] = useState(undefined);
   const [modules, setModules] = useState([]);
+  const [recovering, setRecovering] = useState(openedRecoveryLink); // opened a password-reset link
   const route = useHashRoute();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === 'PASSWORD_RECOVERY') setRecovering(true);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -68,7 +77,22 @@ export default function App() {
     reloadModules();
   }, [db]);
 
+  if (PUBLIC_PAGES.includes(route.parts[0]))
+    return (
+      <Suspense fallback={<FullScreenLoading />}>
+        <Legal page={route.parts[0]} />
+      </Suspense>
+    );
+
   if (session === undefined) return <FullScreenLoading />;
+
+  if (recovering && user)
+    return (
+      <Suspense fallback={<FullScreenLoading />}>
+        <SetPassword email={user.email} onDone={() => setRecovering(false)} />
+        <Toaster position="bottom-right" richColors closeButton />
+      </Suspense>
+    );
 
   if (!db)
     return (

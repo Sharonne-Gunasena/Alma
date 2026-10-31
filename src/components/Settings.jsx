@@ -141,7 +141,28 @@ export default function Settings() {
                 <LogOut /> {user ? 'Sign out' : 'Exit guest mode'}
               </Button>
             </div>
+            {user && (
+              <p className="text-xs text-muted">
+                To delete your account and everything in it, see{' '}
+                <a href="#/privacy" className="font-medium text-fg underline">
+                  How long we keep it
+                </a>{' '}
+                in the privacy policy.
+              </p>
+            )}
           </Card>
+
+          <p className="flex gap-4 px-1 text-xs text-muted">
+            <a href="#/privacy" className="hover:text-fg">
+              Privacy policy
+            </a>
+            <a href="#/cookies" className="hover:text-fg">
+              Cookies
+            </a>
+            <a href="#/terms" className="hover:text-fg">
+              Terms
+            </a>
+          </p>
         </div>
       </div>
     </div>

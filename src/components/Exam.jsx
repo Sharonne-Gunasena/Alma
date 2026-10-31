@@ -345,7 +345,7 @@ function Session({ attempt, save }) {
                       q.response === i ? 'border-indigo-400 bg-soft' : 'border-line bg-card hover:border-indigo-200 hover:bg-subtle',
                     )}
                   >
-                    <span className={cn('grid size-6 shrink-0 place-items-center rounded-full font-mono text-xs font-semibold', q.response === i ? 'bg-indigo-600 text-white' : 'bg-subtle text-muted')}>
+                    <span className={cn('grid size-6 shrink-0 place-items-center rounded-full font-mono text-xs font-semibold', q.response === i ? 'bg-indigo-700 text-white' : 'bg-subtle text-muted')}>
                       {LETTERS[i]}
                     </span>
                     <span className="whitespace-pre-wrap">{choice}</span>
@@ -463,7 +463,7 @@ function Marking({ attempt, save }) {
     return (
       <div className="mx-auto max-w-xl">
         <Card className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-          <motion.span animate={{ rotate: 360 }} transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }} className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 text-white">
+          <motion.span animate={{ rotate: 360 }} transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }} className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-orange-700 to-red-600 text-white">
             <Sparkles className="size-5" />
           </motion.span>
           <h1 className="text-2xl font-semibold tracking-tight">Marking your answers</h1>

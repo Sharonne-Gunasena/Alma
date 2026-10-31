@@ -243,7 +243,7 @@ export default function ModuleView({ moduleId }) {
                   <Card key={d.id} as="a" href={`#/decks/${d.id}`} interactive className="flex flex-col gap-3 p-5 text-fg no-underline">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold tracking-tight">{d.title}</p>
-                      {d.due_count > 0 && <span className="shrink-0 rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-semibold text-white">{d.due_count} due</span>}
+                      {d.due_count > 0 && <span className="shrink-0 rounded-full bg-indigo-700 px-2 py-0.5 text-[11px] font-semibold text-white">{d.due_count} due</span>}
                     </div>
                     <div className="mt-auto flex flex-col gap-1.5">
                       <ProgressBar value={d.card_count ? d.mastered_count / d.card_count : 0} tone="emerald" />

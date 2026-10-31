@@ -153,7 +153,7 @@ export function ReportSheet({ open, onClose, conversationId, reportedUserId, mes
     setSaving(true);
     try {
       await chatApi.report({ conversationId, reportedUserId, message, reason, details });
-      toast.success('Thanks. We will look at this report.');
+      toast.success('Thanks. Your report was sent.');
       setDetails('');
       onDone?.();
       onClose();
@@ -165,7 +165,7 @@ export function ReportSheet({ open, onClose, conversationId, reportedUserId, mes
   }
 
   return (
-    <Modal open={open} onOpenChange={(v) => !v && onClose()} title={message ? 'Report message' : 'Report person'} description="Reports are read by the Alma team. Nothing is sent to the other person.">
+    <Modal open={open} onOpenChange={(v) => !v && onClose()} title={message ? 'Report message' : 'Report person'} description="Reports go to the person who runs Alma. Nothing is sent to the other person.">
       <form onSubmit={send} className="flex flex-col gap-4">
         {message && <p className="rounded-xl bg-subtle px-3 py-2 text-sm text-muted italic">“{message.body}”</p>}
         <Field label="Why are you reporting this?">

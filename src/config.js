@@ -1,4 +1,4 @@
-// The anon key is meant to be public: row-level security in supabase/schema.sql
+// The anon key is meant to be public: row-level security (supabase/migrations/)
 // is what keeps each user's data private.
 export const SUPABASE_URL = 'https://ncqppzpfnvlrtqhbftnx.supabase.co';
 export const SUPABASE_ANON_KEY =
@@ -7,9 +7,8 @@ export const SUPABASE_ANON_KEY =
 export const MATERIALS_BUCKET = 'materials';
 export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
-export const MODELS = [
-  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 — best quality' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 — balanced' },
-  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 — cheapest, fastest' },
-];
-export const DEFAULT_MODEL = 'claude-opus-5-5';
+// Who runs Alma, shown on the privacy and terms pages. CONTACT_EMAIL is required:
+// EU law requires a way to contact the person in charge of the data.
+export const OWNER_NAME = 'Sharonne Gunasena';
+export const CONTACT_EMAIL = 'sharonnegunasena@gmail.com';
+export const SOURCE_URL = 'https://github.com/Sharonne-Gunasena/Alma';

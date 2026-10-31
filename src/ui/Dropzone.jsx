@@ -30,7 +30,7 @@ export function Dropzone({ accept, onFile, icon: Icon = Upload, title, subtitle,
         className,
       )}
     >
-      <span className={cn('grid size-12 place-items-center rounded-2xl transition-colors', over || selected ? 'bg-indigo-600 text-white' : 'bg-soft text-indigo-600 dark:text-indigo-300')}>
+      <span className={cn('grid size-12 place-items-center rounded-2xl transition-colors', over || selected ? 'bg-indigo-700 text-white' : 'bg-soft text-indigo-600 dark:text-indigo-300')}>
         <Icon className="size-6" />
       </span>
       <span className="flex flex-col gap-0.5">

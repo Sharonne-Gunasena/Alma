@@ -115,7 +115,7 @@ export default function Onboarding() {
               <span
                 className={cn(
                   'grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors',
-                  i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-indigo-600 text-white' : 'bg-subtle text-muted',
+                  i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-indigo-700 text-white' : 'bg-subtle text-muted',
                 )}
               >
                 {i < step ? <Check className="size-3.5" /> : i + 1}

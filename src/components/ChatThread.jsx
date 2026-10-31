@@ -1,13 +1,16 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, Bell, BellOff, LogOut, MessagesSquare, MoreHorizontal, Send, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bell, BellOff, Flag, LogOut, MessagesSquare, MoreHorizontal, Send, UserPlus, Users } from 'lucide-react';
 import { chatApi, joinRoom, watchMessages } from '../lib/chat.js';
 import { cleanMessage, conversationTitle, dayLabel, formatTime, messageProblem, startsNewDay, typingLabel, visibleMessages } from '../lib/chatRules.js';
 import { Menu, useDialogs } from '../ui/dialog.jsx';
 import { Button } from '../ui/Button.jsx';
 import { Card, EmptyState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
-import { InviteSheet } from './ChatSheets.jsx';
+import { InviteSheet, ReportSheet } from './ChatSheets.jsx';
+
+// Small text actions under a message (Delete, Report).
+const MESSAGE_ACTION = 'opacity-0 transition-opacity hover:text-rose-600 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100';
 
 const TYPING_HOLD_MS = 3500;
 
@@ -21,6 +24,7 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
   const [online, setOnline] = useState([]);
   const [typing, setTyping] = useState({});
   const [inviting, setInviting] = useState(false);
+  const [reporting, setReporting] = useState(null); // null, or the message being reported (or 'person')
   const roomRef = useRef(null);
   const lastTypingSent = useRef(0);
   const bottom = useRef(null);
@@ -172,6 +176,7 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
     { label: row.muted ? 'Turn notifications on' : 'Mute chat', icon: row.muted ? Bell : BellOff, onSelect: toggleMute },
     isDirect && !iBlockedThem && { label: 'Block', icon: Ban, danger: true, onSelect: block },
     isDirect && iBlockedThem && { label: 'Unblock', icon: Ban, onSelect: unblock },
+    isDirect && { label: 'Report person', icon: Flag, onSelect: () => setReporting('person') },
     row.kind !== 'module' && '-',
     row.kind !== 'module' && { label: row.kind === 'group' ? 'Leave group' : 'Delete chat', icon: LogOut, danger: true, onSelect: leave },
   ];
@@ -254,16 +259,22 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
                       <div
                         className={cn(
                           'rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap',
-                          mine ? 'rounded-br-md bg-gradient-to-br from-orange-500 to-red-500 text-white' : 'rounded-bl-md bg-card text-fg ring-1 ring-line',
+                          mine ? 'rounded-br-md bg-gradient-to-br from-orange-700 to-red-600 text-white' : 'rounded-bl-md bg-card text-fg ring-1 ring-line',
                         )}
                       >
                         {msg.body}
                       </div>
                       <span className="mt-0.5 flex items-center gap-2 px-2 text-[11px] text-muted">
                         {formatTime(msg.created_at)}
+                        {/* Shown on hover with a mouse; always shown on touch screens, which can't hover. */}
                         {mine && (
-                          <button onClick={() => deleteMessage(msg)} className="opacity-0 transition-opacity hover:text-rose-600 group-hover:opacity-100 focus:opacity-100">
+                          <button onClick={() => deleteMessage(msg)} className={MESSAGE_ACTION}>
                             Delete
+                          </button>
+                        )}
+                        {!mine && (
+                          <button onClick={() => setReporting(msg)} className={MESSAGE_ACTION}>
+                            Report
                           </button>
                         )}
                       </span>
@@ -316,6 +327,13 @@ export default function ChatThread({ row, people, userId, myName, blockedIds, on
           onAdded={onChanged}
         />
       )}
+      <ReportSheet
+        open={Boolean(reporting)}
+        onClose={() => setReporting(null)}
+        conversationId={id}
+        reportedUserId={reporting && reporting !== 'person' ? reporting.sender_id : otherId}
+        message={reporting && reporting !== 'person' ? reporting : null}
+      />
     </section>
   );
 }

@@ -100,7 +100,7 @@ function ChatRow({ row, active, userId }) {
       <span className="flex shrink-0 flex-col items-end gap-1">
         {row.last_message_at && <span className="text-[11px] text-muted">{formatTime(row.last_message_at)}</span>}
         {unread > 0 && (
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-indigo-600 px-1.5 text-[11px] font-semibold text-white">{badgeText(unread)}</span>
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-indigo-700 px-1.5 text-[11px] font-semibold text-white">{badgeText(unread)}</span>
         )}
       </span>
     </a>

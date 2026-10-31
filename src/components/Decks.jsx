@@ -130,7 +130,7 @@ export default function Decks() {
                         </p>
                         <p>{d.mastered_count} mastered</p>
                       </div>
-                      {d.due_count > 0 && <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white shadow-glow">{d.due_count} due</span>}
+                      {d.due_count > 0 && <span className="rounded-full bg-indigo-700 px-2.5 py-1 text-xs font-semibold text-white shadow-glow">{d.due_count} due</span>}
                     </div>
                   </Card>
                 </motion.div>

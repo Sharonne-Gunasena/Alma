@@ -277,7 +277,7 @@ export default function Dashboard() {
                           </p>
                         )}
                       </div>
-                      {current && <span className="hidden rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-medium text-white sm:inline">Now</span>}
+                      {current && <span className="hidden rounded-full bg-indigo-700 px-2 py-0.5 text-[11px] font-medium text-white sm:inline">Now</span>}
                       {item.kind === 'task' && !past && (
                         <Button size="sm" variant="ghost" onClick={() => markDone(item.s)} className="opacity-70 group-hover:opacity-100">
                           <Check /> Done
