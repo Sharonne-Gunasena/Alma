@@ -6,7 +6,7 @@ import { isoDate, toMinutes, WEEKDAYS } from '../lib/time.js';
 import TimetableImport from './TimetableImport.jsx';
 import LeaveOut from './LeaveOut.jsx';
 import { Button } from '../ui/Button.jsx';
-import { Card, EmptyState, ModuleBadge, PageHeader, Skeleton } from '../ui/primitives.jsx';
+import { Card, EmptyState, ModuleBadge, PageHeader, Skeleton, ErrorState } from '../ui/primitives.jsx';
 import { Field, Input, ModuleSelect, Select } from '../ui/form.jsx';
 import { Modal, useDialogs } from '../ui/dialog.jsx';
 import { TimeGrid } from '../ui/TimeGrid.jsx';
@@ -22,7 +22,7 @@ export default function Timetable() {
   const [adding, setAdding] = useState(null);
   const [selected, setSelected] = useState(null);
 
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (error) return <ErrorState>{error}</ErrorState>;
   if (!events)
     return (
       <div className="flex flex-col gap-6">

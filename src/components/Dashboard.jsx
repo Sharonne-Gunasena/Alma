@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
 import {
@@ -34,9 +34,10 @@ import {
   toMinutes,
 } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, CardHeader, EmptyState, Eyebrow, IconTile, ModuleBadge, ProgressBar, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { Card, CardHeader, EmptyState, Eyebrow, IconTile, ModuleBadge, ProgressBar, ProgressRing, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
-import { CountUp, Reveal, RevealText } from '../ui/motion.jsx';
+import { CountUp, RevealText } from '../ui/motion.jsx';
+import { useIntro } from '../ui/anim.js';
 
 const minutesOf = (d) => d.getHours() * 60 + d.getMinutes();
 
@@ -71,9 +72,11 @@ export default function Dashboard() {
   const { loading, error, plan, assignments = [], classEvents = [], cards = [], decks = [], dueCount, logStudy } = usePlan();
   const { asks, resolve } = useCheckins(plan, assignments);
   const now = new Date();
+  const scope = useRef(null);
+  useIntro(scope, entrancePlayed ? null : entrance, [loading]);
 
   if (loading) return <DashboardSkeleton />;
-  if (error) return <p className="text-rose-600">{/schema cache|does not exist/.test(error) ? 'The database needs updating: run supabase/migrations/002_campusloop.sql in Supabase, then reload.' : error}</p>;
+  if (error) return <ErrorState>{/schema cache|does not exist/.test(error) ? 'The database needs updating: run supabase/migrations/002_campusloop.sql in Supabase, then reload.' : error}</ErrorState>;
 
   const hour = now.getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -133,20 +136,20 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div ref={scope} className="flex flex-col gap-8">
       {/* Hero */}
-      <motion.section variants={fadeUp} initial="hidden" animate="show" className="flex flex-wrap items-end justify-between gap-6">
+      <section className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex max-w-2xl flex-col gap-3">
-          <Eyebrow>
+          <Eyebrow data-intro="hero">
             {now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}
             {week ? ` · Week ${week}` : ''}
           </Eyebrow>
-          <RevealText as="h1" text={`${greeting}${profile?.display_name ? `, ${profile.display_name}` : ''}.`} className="text-4xl font-semibold tracking-[-0.035em] text-balance sm:text-5xl" />
-          <p className="text-[15px] text-muted text-pretty">
+          <RevealText as="h1" text={`${greeting}${profile?.display_name ? `, ${profile.display_name}` : ''}.`} className="font-display text-[2.6rem] leading-[1.04] font-medium text-balance sm:text-[3.4rem]" />
+          <p data-intro="hero" className="text-[15px] text-muted text-pretty">
             {summary.length ? `Today you have ${listify(summary)}.` : 'Nothing scheduled today. A good day to get ahead.'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2.5">
+        <div data-intro="hero" className="flex flex-wrap gap-2.5">
           <Button variant="secondary" href="#/planner?new=1">
             <Plus /> Deadline
           </Button>
@@ -154,19 +157,17 @@ export default function Dashboard() {
             <Sparkles /> Lecture → flashcards
           </Button>
         </div>
-      </motion.section>
+      </section>
 
       {/* Up next + check-ins + warnings */}
       <div className="flex flex-col gap-3">
         {next && <UpNext item={next} nowMin={nowMin} moduleById={moduleById} dueCount={dueCount} />}
         <CheckIns asks={asks} onAnswer={checkIn} />
         {plan.warnings.slice(0, 2).map((w) => (
-          <motion.a
+          <a
             key={w.assignmentId}
             href="#/planner"
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
+            data-intro="hero"
             className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950 no-underline transition-colors hover:bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
           >
             <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
@@ -177,7 +178,7 @@ export default function Dashboard() {
                 : `needs ${formatHours(w.minutes)} more than your free time before ${formatDue(w.deadline)}. Add study hours or start now.`}
             </span>
             <ArrowRight className="ml-auto mt-0.5 size-4 shrink-0 opacity-60" />
-          </motion.a>
+          </a>
         ))}
       </div>
 
@@ -209,7 +210,7 @@ export default function Dashboard() {
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
         {/* Today's timeline */}
-        <Card className="lg:col-span-2">
+        <Card data-intro="panel" className="lg:col-span-2">
           <CardHeader
             title="Today"
             icon={Target}
@@ -231,12 +232,9 @@ export default function Dashboard() {
                   const current = item.start <= nowMin && nowMin < item.end;
                   const color = item.kind === 'class' ? moduleById(item.c.module_id)?.color ?? '#64748b' : item.kind === 'review' ? '#10b981' : moduleById(item.s.module_id)?.color ?? '#f97316';
                   return (
-                    <motion.li
+                    <li
                       key={i}
-                      custom={i}
-                      variants={fadeUp}
-                      initial="hidden"
-                      animate="show"
+                      data-intro="row"
                       className={cn(
                         'group relative flex items-center gap-4 rounded-xl border border-transparent px-3 py-2.5 transition-colors hover:border-line hover:bg-subtle',
                         past && 'opacity-50',
@@ -283,7 +281,7 @@ export default function Dashboard() {
                           <Check /> Done
                         </Button>
                       )}
-                    </motion.li>
+                    </li>
                   );
                 })}
               </ol>
@@ -293,7 +291,7 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-4 lg:gap-5">
           {/* Deadlines */}
-          <Card>
+          <Card data-intro="panel">
             <CardHeader title="Deadlines" icon={CalendarClock} action={<Button size="sm" variant="ghost" href="#/planner?new=1"><Plus /> Add</Button>} />
             <div className="flex flex-col gap-1 p-3 pt-3">
               {open.length === 0 && <p className="px-2 pb-2 text-sm text-muted">No open deadlines.</p>}
@@ -324,8 +322,8 @@ export default function Dashboard() {
       </section>
 
       {/* Weak topics + modules */}
-      <Reveal as="section" className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
-        <Card>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+        <Card data-intro="reveal">
           <CardHeader title="Topics to work on" icon={Brain} />
           <div className="flex flex-col gap-3 p-5 pt-4">
             {weak.length === 0 ? (
@@ -351,7 +349,7 @@ export default function Dashboard() {
             const nextClass = upcomingClass(classEvents.filter((e) => e.module_id === m.id), now);
             const openCount = open.filter((a) => a.module_id === m.id).length;
             return (
-              <motion.div key={m.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
+              <div key={m.id} data-intro="reveal">
                 <Card as="a" href={`#/modules/${m.id}`} interactive className="relative flex h-full flex-col gap-3 overflow-hidden p-5 text-fg no-underline">
                   <span className="absolute inset-x-0 top-0 h-1" style={{ background: m.color }} />
                   <div>
@@ -366,7 +364,7 @@ export default function Dashboard() {
                     <span>{openCount} open</span>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
           {modules.length === 0 && (
@@ -377,7 +375,7 @@ export default function Dashboard() {
             </Card>
           )}
         </div>
-      </Reveal>
+      </section>
     </div>
   );
 }
@@ -387,16 +385,16 @@ export default function Dashboard() {
 // A null value shows a dash rather than a misleading zero.
 function Stat({ icon, label, value, format, hint, href, tone = 'indigo', ring, i }) {
   return (
-    <motion.div custom={i} variants={fadeUp} initial="hidden" animate="show" className="h-full">
+    <div data-intro="stat" className="h-full">
       <Card as="a" href={href} interactive className="flex h-full flex-col gap-3 p-4 text-fg no-underline lg:p-5">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-[13px] text-muted">{label}</span>
           {ring !== undefined ? <ProgressRing value={ring} size={32} stroke={4} /> : <IconTile icon={icon} size="sm" tone={tone} />}
         </div>
-        <p className="text-3xl font-semibold tracking-tight">{value === null ? <span className="text-muted">–</span> : <CountUp value={value} format={format} />}</p>
+        <p className="font-display text-[2.1rem] leading-none font-medium">{value === null ? <span className="text-muted">–</span> : <CountUp value={value} format={format} />}</p>
         <p className="truncate text-xs text-muted">{hint}</p>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -411,9 +409,9 @@ function UpNext({ item, nowMin, moduleById, dueCount }) {
         : `Study: ${item.s.title}`;
   const where = item.kind === 'class' ? item.c.location : null;
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="flex w-fit max-w-full items-center gap-3 rounded-2xl border border-line bg-card py-2.5 pr-5 pl-3 shadow-lift">
+    <div data-intro="hero" className="flex w-fit max-w-full items-center gap-3 rounded-2xl border border-line bg-card py-2.5 pr-5 pl-3 shadow-lift">
       <span className="relative flex size-2.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-indigo-400 opacity-60" />
+        <span className="absolute inline-flex size-full rounded-full bg-indigo-400 opacity-60 motion-safe:animate-ping" />
         <span className="relative inline-flex size-2.5 rounded-full bg-indigo-500" />
       </span>
       <div className="min-w-0 text-sm">
@@ -422,7 +420,7 @@ function UpNext({ item, nowMin, moduleById, dueCount }) {
         <span className="font-medium">{title}</span>
         {where && <span className="text-muted"> · {where}</span>}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -475,7 +473,7 @@ function WeekChart({ plan, classEvents, now }) {
   });
   const max = Math.max(240, ...data.map((x) => x.study + x.classes));
   return (
-    <Card>
+    <Card data-intro="panel">
       <CardHeader title="Next 7 days" icon={Clock3} />
       <div className="flex h-36 items-end gap-2 px-5 pt-4 pb-2">
         {data.map(({ d, study, classes }, i) => (
@@ -491,7 +489,7 @@ function WeekChart({ plan, classEvents, now }) {
             </span>
             <div className="flex w-full max-w-7 flex-1 flex-col justify-end overflow-hidden rounded-lg bg-subtle">
               <motion.div className="w-full bg-indigo-500 group-hover:bg-indigo-400" initial={{ height: 0 }} animate={{ height: `${(study / max) * 100}%` }} transition={{ delay: i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
-              <motion.div className="w-full bg-slate-300 dark:bg-slate-600" initial={{ height: 0 }} animate={{ height: `${(classes / max) * 100}%` }} transition={{ delay: i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
+              <motion.div className="w-full bg-stone-300 dark:bg-stone-600" initial={{ height: 0 }} animate={{ height: `${(classes / max) * 100}%` }} transition={{ delay: i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
             </div>
             <span className={cn('text-[11px]', i === 0 ? 'font-semibold text-indigo-700 dark:text-indigo-400' : 'text-muted')}>{WEEKDAYS_SHORT[d.getDay()]}</span>
           </a>
@@ -502,11 +500,38 @@ function WeekChart({ plan, classEvents, now }) {
           <span className="size-2 rounded-sm bg-indigo-500" /> Study
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-sm bg-slate-300 dark:bg-slate-600" /> Classes
+          <span className="size-2 rounded-sm bg-stone-300 dark:bg-stone-600" /> Classes
         </span>
       </div>
     </Card>
   );
+}
+
+// The dashboard's entrance: the greeting, then the numbers, then the panels and
+// today's timeline, overlapping so it reads as one movement. The lower section
+// rises in when it scrolls into view.
+// It plays on the first visit of a session only; coming back to Today later
+// just gets the normal page fade. clearProps hands styling back to the
+// classes afterwards (past timeline rows stay dimmed).
+let entrancePlayed = false;
+function entrance(gsap, scope, ScrollTrigger) {
+  entrancePlayed = true;
+  const q = (s) => scope.querySelectorAll(s);
+  const done = { clearProps: 'opacity,transform' };
+  gsap
+    .timeline({ defaults: { ease: 'expo.out', duration: 0.8 } })
+    .fromTo(q('[data-intro="hero"]'), { y: 14, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.07, ...done })
+    .fromTo(q('[data-intro="stat"]'), { y: 18, opacity: 0, scale: 0.985 }, { y: 0, opacity: 1, scale: 1, stagger: 0.06, ...done }, '-=0.6')
+    .fromTo(q('[data-intro="panel"]'), { y: 24, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.08, ...done }, '-=0.6')
+    .fromTo(q('[data-intro="row"]'), { x: -10, opacity: 0 }, { x: 0, opacity: 1, stagger: 0.045, duration: 0.55, ...done }, '-=0.6');
+  const lower = q('[data-intro="reveal"]');
+  if (!lower.length) return;
+  gsap.set(lower, { y: 24, opacity: 0 });
+  ScrollTrigger.batch(lower, {
+    start: 'top 92%',
+    once: true,
+    onEnter: (els) => gsap.to(els, { y: 0, opacity: 1, stagger: 0.08, duration: 0.8, ease: 'expo.out', ...done }),
+  });
 }
 
 function DashboardSkeleton() {

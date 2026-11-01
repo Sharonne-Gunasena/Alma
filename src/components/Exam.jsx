@@ -34,7 +34,7 @@ import {
 } from '../lib/exam.js';
 import { formatDue } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
-import { BackLink, Card, CardHeader, EmptyState, IconTile, PageHeader, Pill, ProgressBar, ProgressRing, Segmented, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { BackLink, Card, CardHeader, EmptyState, IconTile, PageHeader, Pill, ProgressBar, ProgressRing, Segmented, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { Field, Select, Textarea, Toggle } from '../ui/form.jsx';
 import { useDialogs } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
@@ -215,7 +215,7 @@ function Attempt({ attemptId }) {
     await db.update('exam_attempts', attemptId, patch);
   }
 
-  if (error) return <p className="text-rose-600">{needsExamMigration(error) ? EXAM_MIGRATION_HINT : error}</p>;
+  if (error) return <ErrorState>{needsExamMigration(error) ? EXAM_MIGRATION_HINT : error}</ErrorState>;
   if (!attempt)
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -466,7 +466,7 @@ function Marking({ attempt, save }) {
           <motion.span animate={{ rotate: 360 }} transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }} className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-orange-700 to-red-600 text-white">
             <Sparkles className="size-5" />
           </motion.span>
-          <h1 className="text-2xl font-semibold tracking-tight">Marking your answers</h1>
+          <h1 className="font-display text-[1.8rem] leading-tight font-medium">Marking your answers</h1>
           <p className="text-sm text-muted">{progress?.total ? `Written answer ${Math.min(progress.done + 1, progress.total)} of ${progress.total}` : 'Getting started…'}</p>
           {progress?.total > 0 && <ProgressBar value={progress.done / progress.total} className="w-full max-w-xs" />}
         </Card>
@@ -586,7 +586,7 @@ function Results({ attempt, save }) {
         </ProgressRing>
         <div className="flex min-w-0 flex-col gap-2">
           <p className="text-[13px] font-medium text-indigo-700 dark:text-indigo-400">{attempt.title}</p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{pct >= 85 ? 'Excellent work' : pct >= 70 ? 'Solid result' : pct >= 50 ? 'Getting there' : 'Now you know what to work on'}</h1>
+          <h1 className="font-display text-[2.1rem] leading-[1.08] font-medium sm:text-[2.6rem]">{pct >= 85 ? 'Excellent work' : pct >= 70 ? 'Solid result' : pct >= 50 ? 'Getting there' : 'Now you know what to work on'}</h1>
           <p className="text-[15px] text-muted">
             {fmtMark(earned)} of {qs.length} marks{took !== null ? ` · ${took} min` : ''} · {new Date(attempt.started_at).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
           </p>

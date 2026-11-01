@@ -6,7 +6,7 @@ import { useApp, useLoad, go } from '../context.js';
 import { TEMPLATES, fromLectureGuide, plainText, sections } from '../lib/guides.js';
 import { activeAI } from '../ai/providers.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, EmptyState, ModuleBadge, PageHeader, Pill, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { Card, EmptyState, ModuleBadge, PageHeader, Pill, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { ChoiceCard, ModuleSelect } from '../ui/form.jsx';
 import { Modal } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
@@ -67,7 +67,7 @@ export default function Guides() {
         </div>
       )}
 
-      {error && <p className="text-rose-600">{error}</p>}
+      {error && <ErrorState>{error}</ErrorState>}
       {data?.guides === null && (
         <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
           The database needs updating for study guides: run <code>supabase/migrations/004_study_guides.sql</code> in the Supabase SQL Editor.

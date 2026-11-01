@@ -6,7 +6,7 @@ import { useApp } from '../context.js';
 import { usePlan } from '../lib/usePlan.js';
 import { addDays, eventOn, formatDue, formatHours, fromMinutes, isoDate, sameDay, startOfDay, toMinutes, WEEKDAYS, WEEKDAYS_SHORT } from '../lib/time.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, EmptyState, ModuleBadge, PageHeader, Pill, ProgressBar, ProgressRing, Segmented, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { Card, EmptyState, ModuleBadge, PageHeader, Pill, ProgressBar, ProgressRing, Segmented, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { Field, Input, ModuleSelect, Select, Textarea } from '../ui/form.jsx';
 import { Menu, Modal, useDialogs } from '../ui/dialog.jsx';
 import { TimeGrid } from '../ui/TimeGrid.jsx';
@@ -31,7 +31,7 @@ export default function Planner() {
         <Skeleton className="h-[520px] rounded-2xl" />
       </div>
     );
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (error) return <ErrorState>{error}</ErrorState>;
 
   const now = new Date();
   const days = Array.from({ length: 7 }, (_, i) => addDays(startOfDay(now), i));

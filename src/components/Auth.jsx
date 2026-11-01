@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, CalendarDays, Layers, Sparkles } from 'lucide-react';
 import { RevealText } from '../ui/motion.jsx';
+import { useIntro } from '../ui/anim.js';
 import { supabase } from '../supabase.js';
 import { LogoMark } from './Shell.jsx';
 import { Button } from '../ui/Button.jsx';
@@ -38,12 +39,28 @@ export function StrengthMeter({ password, email }) {
     <div className="-mt-2 flex flex-col gap-1.5" aria-live="polite">
       <div className="flex gap-1" aria-hidden>
         {[1, 2, 3].map((i) => (
-          <span key={i} className={`h-1 flex-1 rounded-full ${i <= Math.max(score, 1) ? tone : 'bg-line'}`} />
+          <span key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-line">
+            <span className={`block h-full origin-left rounded-full transition-[transform,background-color] duration-300 ${tone} ${i <= Math.max(score, 1) ? 'scale-x-100' : 'scale-x-0'}`} />
+          </span>
         ))}
       </div>
       <p className="text-xs text-muted">Password strength: {label}</p>
     </div>
   );
+}
+
+// The brand panel: the tagline settles, the features follow, then the
+// notification chips arrive from the right and drift gently.
+function brandEntrance(gsap, scope) {
+  const q = (s) => scope.querySelectorAll(s);
+  const chips = q('[data-intro="chip"]');
+  gsap
+    .timeline({ defaults: { ease: 'expo.out', duration: 0.9 } })
+    .fromTo(q('[data-intro="tagline"]'), { y: 10, opacity: 0 }, { y: 0, opacity: 1 })
+    .fromTo(q('[data-intro="feature"]'), { x: -16, opacity: 0 }, { x: 0, opacity: 1, stagger: 0.1 }, 0.35)
+    .fromTo(chips, { x: 40, opacity: 0, rotate: 2 }, { x: 0, opacity: 1, rotate: 0, stagger: 0.14, duration: 1.1 }, 0.6);
+  // Created here (not in a callback) so leaving the page stops it too.
+  gsap.to(chips, { y: -6, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: 1.2, delay: 1.9 });
 }
 
 function friendlyAuthError(message) {
@@ -60,6 +77,8 @@ export default function Auth({ onGuest }) {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null);
+  const brand = useRef(null);
+  useIntro(brand, brandEntrance);
 
   function switchTo(m) {
     setMode(m);
@@ -98,25 +117,25 @@ export default function Auth({ onGuest }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand panel */}
-      <section className="relative hidden overflow-hidden bg-gradient-to-br from-orange-700 via-orange-700 to-red-700 p-12 text-white lg:flex lg:flex-col">
+      <section ref={brand} className="relative hidden overflow-hidden bg-gradient-to-br from-orange-700 via-orange-700 to-red-700 p-12 text-white lg:flex lg:flex-col">
         <div className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-amber-300/30 blur-3xl motion-safe:animate-[drift-a_24s_ease-in-out_infinite_alternate]" />
         <div className="pointer-events-none absolute -right-32 bottom-0 size-[380px] rounded-full bg-sky-300/30 blur-3xl motion-safe:animate-[drift-b_30s_ease-in-out_infinite_alternate]" />
-        <div className="relative flex items-center gap-3 text-lg font-semibold tracking-tight">
-          <LogoMark /> Alma
+        <div className="relative flex items-center gap-3 font-display text-2xl font-medium">
+          <LogoMark draw /> Alma
         </div>
         <div className="relative mt-auto mb-auto flex max-w-md flex-col gap-8">
           <div className="flex flex-col gap-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-orange-100">
+            <p data-intro="tagline" className="flex items-center gap-2 text-sm font-medium text-orange-100">
               <span className="size-1.5 rotate-45 bg-sky-300" /> Built for university students
             </p>
-            <h1 className="text-5xl leading-[1.05] font-semibold tracking-[-0.04em]">
+            <h1 className="font-display text-[3.6rem] leading-[1.02] font-medium">
               <RevealText text="Your whole semester." className="block" />
-              <RevealText text="One loop." className="block text-sky-200" delay={0.25} />
+              <RevealText text="One loop." className="block text-sky-200 italic" delay={0.25} />
             </h1>
           </div>
           <ul className="flex flex-col gap-5">
-            {FEATURES.map((f, i) => (
-              <motion.li key={f.title} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.1 }} className="flex gap-4">
+            {FEATURES.map((f) => (
+              <li key={f.title} data-intro="feature" className="flex gap-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 text-indigo-200 ring-1 ring-white/10">
                   <f.icon className="size-5" />
                 </span>
@@ -124,23 +143,17 @@ export default function Auth({ onGuest }) {
                   <p className="font-medium">{f.title}</p>
                   <p className="text-sm text-orange-50/90">{f.text}</p>
                 </span>
-              </motion.li>
+              </li>
             ))}
           </ul>
         </div>
-        {CHIPS.map((c, i) => (
-          <motion.div
-            key={c.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: [0, -6, 0] }}
-            transition={{ opacity: { delay: 0.4 + i * 0.15 }, y: { duration: 5 + i, repeat: Infinity, ease: 'easeInOut', delay: i } }}
-            className={`absolute hidden rounded-2xl bg-white px-4 py-2.5 text-slate-900 shadow-2xl xl:block ${c.className}`}
-          >
+        {CHIPS.map((c) => (
+          <div key={c.title} data-intro="chip" className={`absolute hidden rounded-2xl bg-white px-4 py-2.5 text-slate-900 shadow-2xl xl:block ${c.className}`}>
             <p className="flex items-center gap-2 text-sm font-semibold">
               <span className={`size-2 rounded-full ${c.dot}`} /> {c.title}
             </p>
             <p className="pl-4 text-xs text-slate-500">{c.sub}</p>
-          </motion.div>
+          </div>
         ))}
       </section>
 
@@ -148,13 +161,23 @@ export default function Auth({ onGuest }) {
       <section className="flex items-center justify-center px-5 py-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex w-full max-w-sm flex-col gap-7">
           <div className="flex flex-col gap-3 lg:hidden">
-            <LogoMark />
+            <LogoMark draw />
             <p className="text-sm text-muted">Your timetable, deadlines and study in one place.</p>
           </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-semibold tracking-tight">{TITLES[mode]}</h2>
-            <p className="text-sm text-muted">{SUBTITLES[mode]}</p>
-          </div>
+          {/* The heading swaps with a short cross-fade when the mode changes. */}
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col gap-2"
+            >
+              <h2 className="font-display text-[2.1rem] leading-tight font-medium">{TITLES[mode]}</h2>
+              <p className="text-sm text-muted">{SUBTITLES[mode]}</p>
+            </motion.div>
+          </AnimatePresence>
 
           {mode !== 'reset' && (
           <Segmented
@@ -190,7 +213,11 @@ export default function Auth({ onGuest }) {
               </button>
             )}
             {message && (
-              <p
+              <motion.p
+                key={message.text}
+                role={message.kind === 'error' ? 'alert' : 'status'}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={
                   message.kind === 'error'
                     ? 'rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
@@ -198,7 +225,7 @@ export default function Auth({ onGuest }) {
                 }
               >
                 {message.text}
-              </p>
+              </motion.p>
             )}
             <Button variant="primary" size="lg" disabled={busy} className="w-full">
               {busy ? 'Please wait…' : SUBMIT[mode]} {!busy && <ArrowRight />}

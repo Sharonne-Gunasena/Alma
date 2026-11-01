@@ -87,7 +87,7 @@ export default function ModuleView({ moduleId }) {
         <div className="relative flex flex-wrap items-end justify-between gap-5">
           <div className="flex flex-col gap-2">
             {module.code && <span className="w-fit rounded-full bg-white/20 px-2.5 py-0.5 font-mono text-xs font-medium backdrop-blur">{module.code}</span>}
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{module.name}</h1>
+            <h1 className="font-display text-[2.1rem] leading-[1.08] font-medium sm:text-[2.6rem]">{module.name}</h1>
             {examDays !== null && examDays >= 0 && (
               <p className="flex items-center gap-1.5 text-sm text-white/85">
                 <GraduationCap className="size-4" /> Exam in {examDays} day{examDays === 1 ? '' : 's'}

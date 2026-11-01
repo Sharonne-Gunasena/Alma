@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, CalendarDays, ClipboardCheck, Clock3, House, Layers, LogOut, MessagesSquare, MoreHorizontal, NotebookPen, Settings, Shapes, X } from 'lucide-react';
 import { useApp } from '../context.js';
 import { Aurora } from '../ui/motion.jsx';
+import { EASE, useDraw } from '../ui/anim.js';
 import { Modal } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
 
@@ -34,16 +35,31 @@ const bannerHidden = () => {
   }
 };
 
-export function LogoMark({ className }) {
+// With `draw`, the ring draws itself on (Anime.js) before the blue dot lands.
+export function LogoMark({ className, draw }) {
+  const svg = useRef(null);
+  useDraw(draw ? svg : NO_REF, { duration: 1100, delay: 150 });
   return (
     <span className={cn('relative inline-grid size-9 place-items-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 shadow-glow', className)}>
-      <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
-        <circle cx="12" cy="12" r="6.5" stroke="white" strokeWidth="2.6" />
-        <circle cx="18.2" cy="8.4" r="2.4" fill="#7dd3fc" stroke="#ea580c" strokeWidth="1.4" />
+      <svg ref={svg} viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
+        <circle data-draw cx="12" cy="12" r="6.5" stroke="white" strokeWidth="2.6" strokeLinecap="round" transform="rotate(-60 12 12)" />
+        <motion.circle
+          cx="18.2"
+          cy="8.4"
+          r="2.4"
+          fill="#7dd3fc"
+          stroke="#ea580c"
+          strokeWidth="1.4"
+          initial={draw ? { scale: 0 } : false}
+          animate={{ scale: 1 }}
+          transition={{ delay: 1, type: 'spring', bounce: 0.4, duration: 0.5 }}
+          style={{ transformOrigin: '18.2px 8.4px' }}
+        />
       </svg>
     </span>
   );
 }
+const NO_REF = { current: null };
 
 const initials = (name) =>
   name
@@ -87,65 +103,36 @@ export default function Shell({ route, children }) {
       </a>
       <Aurora />
       {/* Sidebar: icon rail on tablets, full width on desktop. */}
-      <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-line bg-card px-3 py-5 text-muted md:flex lg:px-4">
-        <a href="#/" className="flex items-center gap-3 px-1.5 text-fg no-underline">
+      {/* The rail is warm ink in both themes: the page is the paper, the rail is the cover. */}
+      <aside className="sticky top-0 hidden h-screen flex-col gap-8 border-r border-rail-line bg-rail px-3 py-5 text-rail-fg md:flex lg:px-4">
+        {/* A soft ember glow at the top of the rail. */}
+        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(120%_80%_at_0%_0%,rgb(234_88_12/0.22),transparent_70%)]" />
+        <a href="#/" className="relative flex items-center gap-3 px-1.5 text-white no-underline">
           <LogoMark />
-          <span className="hidden text-[17px] font-semibold tracking-tight lg:inline">Alma</span>
+          <span className="hidden font-display text-[21px] font-medium lg:inline">Alma</span>
         </a>
 
-        <nav aria-label="Main" className="flex flex-col gap-1">
-          {NAV.map((n) => {
-            const active = n.match(section);
-            return (
-              <a
-                key={n.path}
-                href={`#${n.path}`}
-                title={n.label}
-                aria-label={n.label}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
-                  active ? 'text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
-                )}
-              >
-                {active && (
-                  <motion.span layoutId="nav-active" className="absolute inset-0 rounded-xl bg-soft ring-1 ring-orange-200/70 dark:ring-orange-500/20" transition={SLIDE} />
-                )}
-                {active && <motion.span layoutId="nav-bar" className="absolute top-2 bottom-2 -left-3 w-1 rounded-r-full bg-sky-400 lg:-left-4" transition={SLIDE} />}
-                <n.icon className="relative size-[18px]" strokeWidth={1.9} />
-                <span className="relative hidden lg:inline">{n.label}</span>
-              </a>
-            );
-          })}
+        <nav aria-label="Main" className="relative flex flex-col gap-0.5">
+          {NAV.map((n) => (
+            <RailLink key={n.path} href={`#${n.path}`} icon={n.icon} label={n.label} active={n.match(section)} />
+          ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-1">
-          <a
-            href="#/settings"
-            title="Settings"
-            aria-label="Settings"
-            aria-current={section === 'settings' ? 'page' : undefined}
-            className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors max-lg:justify-center',
-              section === 'settings' ? 'bg-soft text-orange-700 dark:text-orange-300' : 'text-muted hover:bg-subtle hover:text-fg',
-            )}
-          >
-            <Settings className="size-[18px]" strokeWidth={1.9} />
-            <span className="hidden lg:inline">Settings</span>
-          </a>
-          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-subtle p-2.5 ring-1 ring-sky-100 max-lg:justify-center dark:ring-sky-500/10">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange-700 to-red-600 text-[13px] font-semibold text-white">
+        <div className="relative mt-auto flex flex-col gap-1">
+          <RailLink href="#/settings" icon={Settings} label="Settings" active={section === 'settings'} />
+          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-white/[0.04] p-2.5 ring-1 ring-rail-line max-lg:justify-center">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange-500 to-red-600 text-[13px] font-semibold text-white ring-2 ring-white/10">
               {initials(name) || 'G'}
             </span>
             <div className="hidden min-w-0 flex-1 lg:block">
-              <p className="truncate text-sm font-medium text-fg">{profile?.display_name || 'Student'}</p>
-              <p className="truncate text-xs text-muted">{user?.email ?? 'Guest · this browser only'}</p>
+              <p className="truncate text-sm font-medium text-white">{profile?.display_name || 'Student'}</p>
+              <p className="truncate text-xs text-rail-fg">{user?.email ?? 'Guest · this browser only'}</p>
             </div>
             <button
               onClick={signOut}
               title={user ? 'Sign out' : 'Exit guest mode'}
               aria-label={user ? 'Sign out' : 'Exit guest mode'}
-              className="hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card hover:text-fg lg:block"
+              className="hidden rounded-lg p-1.5 text-rail-fg transition-colors hover:bg-white/10 hover:text-white lg:block"
             >
               <LogOut className="size-4" />
             </button>
@@ -157,7 +144,7 @@ export default function Shell({ route, children }) {
         {/* Phone header */}
         <header className="material sticky top-0 z-20 flex items-center justify-between border-b border-line bg-bg/80 px-4 py-2 backdrop-blur-xl md:hidden">
           <a href="#/" className="flex items-center gap-2.5 font-semibold tracking-tight text-fg no-underline">
-            <LogoMark className="size-8" /> Alma
+            <LogoMark className="size-8" /> <span className="font-display text-lg font-medium">Alma</span>
           </a>
           <a href="#/settings" className="grid size-11 place-items-center rounded-full text-muted hover:bg-subtle hover:text-fg" aria-label="Settings">
             <Settings className="size-5" />
@@ -174,9 +161,9 @@ export default function Shell({ route, children }) {
               </button>
             </div>
           )}
-          {/* The new page appears at once; a short fade only softens the swap. */}
+          {/* The new page appears at once (the old one never holds it up); a short fade and rise only soften the swap. */}
           <AnimatePresence initial={false}>
-            <motion.div key={route.path} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}>
+            <motion.div key={route.path} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: EASE }}>
               {children}
             </motion.div>
           </AnimatePresence>
@@ -220,6 +207,27 @@ export default function Shell({ route, children }) {
         </nav>
       </Modal>
     </div>
+  );
+}
+
+// A sidebar link. The selection pill and the light-blue marker slide between links.
+function RailLink({ href, icon: Icon, label, active }) {
+  return (
+    <a
+      href={href}
+      title={label}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium no-underline transition-colors duration-200 max-lg:justify-center focus-visible:outline-orange-400',
+        active ? 'text-white' : 'text-rail-fg hover:bg-white/[0.05] hover:text-white',
+      )}
+    >
+      {active && <motion.span layoutId="nav-active" className="absolute inset-0 rounded-xl bg-white/[0.08] ring-1 ring-white/[0.08]" transition={SLIDE} />}
+      {active && <motion.span layoutId="nav-bar" className="absolute top-2 bottom-2 -left-3 w-1 rounded-r-full bg-sky-400 shadow-[0_0_12px_rgb(56_189_248/0.6)] lg:-left-4" transition={SLIDE} />}
+      <Icon className={cn('relative size-[18px] transition-colors', active ? 'text-orange-400' : 'text-rail-fg/80 group-hover:text-white')} strokeWidth={1.9} />
+      <span className="relative hidden lg:inline">{label}</span>
+    </a>
   );
 }
 

@@ -32,7 +32,7 @@ export default function SetPassword({ email, onDone }) {
       <form onSubmit={save} className="flex w-full max-w-sm flex-col gap-5">
         <LogoMark />
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Choose a new password</h1>
+          <h1 className="font-display text-[2.1rem] leading-tight font-medium">Choose a new password</h1>
           <p className="text-sm text-muted">For {email}.</p>
         </div>
         <Field label="New password" hint={`At least ${MIN_PASSWORD} characters. A short sentence works well.`}>

@@ -1,15 +1,22 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { MotionConfig } from 'motion/react';
 import App from './App.jsx';
 import './index.css';
 import { watchSystemTheme } from './lib/theme.js';
+import { preloadIntro } from './ui/anim.js';
 
 watchSystemTheme();
+preloadIntro();
 
+// reducedMotion="user": Motion animations become instant for people who turn
+// motion off, on every screen (sign-in and legal pages included).
 const render = () =>
   createRoot(document.getElementById('root')).render(
     <StrictMode>
-      <App />
+      <MotionConfig reducedMotion="user">
+        <App />
+      </MotionConfig>
     </StrictMode>,
   );
 

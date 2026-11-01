@@ -1,8 +1,11 @@
 // Small design-system pieces shared by every page.
+import { useRef } from 'react';
 import { motion } from 'motion/react';
+import { TriangleAlert } from 'lucide-react';
 import { cn } from './cn.js';
 import { useApp } from '../context.js';
-import { trackSpotlight } from './motion.jsx';
+import { RevealText, trackSpotlight } from './motion.jsx';
+import { useDraw } from './anim.js';
 
 // Interactive cards light up where the cursor is (the app's one pointer effect).
 export function Card({ className, interactive, as: Tag = 'div', ...props }) {
@@ -32,9 +35,9 @@ export function CardHeader({ title, icon: Icon, action, className }) {
 }
 
 // The small label above a heading: an amber marker plus indigo text.
-export function Eyebrow({ children, className }) {
+export function Eyebrow({ children, className, ...props }) {
   return (
-    <p className={cn('flex items-center gap-2 text-[13px] font-medium text-indigo-700 dark:text-indigo-400', className)}>
+    <p className={cn('flex items-center gap-2 text-[13px] font-medium text-indigo-700 dark:text-indigo-400', className)} {...props}>
       <span className="size-1.5 rotate-45 rounded-[1px] bg-sky-400" aria-hidden />
       {children}
     </p>
@@ -154,10 +157,36 @@ export function Segmented({ options, value, onChange, className }) {
   );
 }
 
+// A load or save that failed: says what happened, in the page's flow.
+export function ErrorState({ children, className }) {
+  return (
+    <motion.div
+      role="alert"
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn('flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100', className)}
+    >
+      <TriangleAlert className="mt-0.5 size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+      <div className="min-w-0 flex-1">{children}</div>
+    </motion.div>
+  );
+}
+
+// The icon sits in a pen loop that draws itself when the empty state appears.
 export function EmptyState({ icon, title, children, className }) {
+  const doodle = useRef(null);
+  useDraw(doodle, { duration: 1000, stagger: 140 });
   return (
     <div className={cn('flex flex-col items-center gap-2 px-6 py-8 text-center', className)}>
-      {icon && <IconTile icon={icon} tone="indigo" size="lg" className="mb-1" />}
+      {icon && (
+        <span className="relative mb-2 grid size-20 place-items-center">
+          <svg ref={doodle} viewBox="0 0 96 96" className="absolute inset-0 size-full overflow-visible text-indigo-400/70" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+            <path data-draw d="M50 10C72 9 88 26 87 48C86 70 70 87 47 86C25 85 9 69 10 47C11 27 26 11 53 13" />
+            <path data-draw d="M86 14l6-6M90 25l8-1M77 8l1-7" className="text-sky-400" stroke="currentColor" />
+          </svg>
+          <IconTile icon={icon} tone="indigo" size="lg" />
+        </span>
+      )}
       <p className="font-semibold">{title}</p>
       <div className="max-w-xs text-sm text-muted">{children}</div>
     </div>
@@ -169,7 +198,7 @@ export function PageHeader({ eyebrow, title, description, actions, children }) {
     <motion.header variants={fadeUp} initial="hidden" animate="show" className="flex flex-wrap items-end justify-between gap-5">
       <div className="flex max-w-2xl min-w-0 flex-col gap-2.5">
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl">{title}</h1>
+        <RevealText as="h1" text={title} className="font-display text-[2.1rem] leading-[1.08] font-medium text-balance sm:text-[2.6rem]" />
         {description && <p className="text-[15px] text-muted text-pretty">{description}</p>}
         {children}
       </div>

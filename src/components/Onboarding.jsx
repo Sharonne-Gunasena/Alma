@@ -9,6 +9,7 @@ import { LogoMark } from './Shell.jsx';
 import { Button } from '../ui/Button.jsx';
 import { ChoiceCard, Field, Input, Select } from '../ui/form.jsx';
 import { Card } from '../ui/primitives.jsx';
+import { RevealText } from '../ui/motion.jsx';
 import { cn } from '../ui/cn.js';
 
 const STUDY_PRESETS = {
@@ -18,9 +19,20 @@ const STUDY_PRESETS = {
 };
 const STEPS = ['About you', 'Your course', 'Your modules', 'Study time'];
 
+const stepMotion = {
+  enter: (dir) => ({ opacity: 0, x: dir * 28 }),
+  show: { opacity: 1, x: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+  leave: (dir) => ({ opacity: 0, x: dir * -28, transition: { duration: 0.16 } }),
+};
+
 export default function Onboarding() {
   const { db, user, reloadProfile, reloadModules, modules } = useApp();
-  const [step, setStep] = useState(0);
+  const [step, setStepRaw] = useState(0);
+  const [dir, setDir] = useState(1);
+  const setStep = (next) => {
+    setDir(next > step ? 1 : -1);
+    setStepRaw(next);
+  };
   const [name, setName] = useState('');
   const [universities, setUniversities] = useState(UNIVERSITIES);
   const [uniId, setUniId] = useState('ucd');
@@ -104,8 +116,8 @@ export default function Onboarding() {
       <div className="pointer-events-none absolute -top-48 left-1/2 size-[640px] -translate-x-1/2 rounded-full bg-indigo-500/15 blur-3xl" />
       <div className="relative flex w-full max-w-2xl flex-col gap-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <LogoMark className="size-11" />
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Let's set up your semester</h1>
+          <LogoMark draw className="size-11" />
+          <RevealText as="h1" text="Let's set up your semester" className="font-display text-[2.2rem] leading-tight font-medium sm:text-[2.8rem]" />
           <p className="text-muted">A few quick steps. You can change any of it later.</p>
         </div>
 
@@ -113,22 +125,37 @@ export default function Onboarding() {
           {STEPS.map((s, i) => (
             <li key={s} className="flex flex-1 items-center gap-2">
               <span
+                aria-current={i === step ? 'step' : undefined}
                 className={cn(
-                  'grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors',
-                  i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-indigo-700 text-white' : 'bg-subtle text-muted',
+                  'relative grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors duration-300',
+                  i < step ? 'bg-emerald-500 text-white' : i === step ? 'text-white' : 'bg-subtle text-muted',
                 )}
               >
-                {i < step ? <Check className="size-3.5" /> : i + 1}
+                {i === step && <motion.span layoutId="onboarding-step" className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-600 to-red-600 shadow-glow" transition={{ type: 'spring', bounce: 0, duration: 0.45 }} />}
+                <span className="relative">{i < step ? <Check className="size-3.5" /> : i + 1}</span>
               </span>
               <span className={cn('hidden text-sm whitespace-nowrap md:inline', i === step ? 'font-medium' : 'text-muted')}>{s}</span>
-              {i < STEPS.length - 1 && <span className={cn('h-px flex-1', i < step ? 'bg-emerald-500' : 'bg-line')} />}
+              {/* The connector fills in as each step is finished. */}
+              {i < STEPS.length - 1 && (
+                <span className="h-px flex-1 overflow-hidden bg-line">
+                  <span className={cn('block h-full origin-left bg-emerald-500 transition-transform duration-500 ease-out', i < step ? 'scale-x-100' : 'scale-x-0')} />
+                </span>
+              )}
             </li>
           ))}
         </ol>
 
         <Card className="overflow-hidden p-6 sm:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div key={step} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
+          {/* Steps slide in the direction of travel, so Back feels like going back. */}
+          <AnimatePresence mode="wait" custom={dir}>
+            <motion.div
+              key={step}
+              custom={dir}
+              variants={stepMotion}
+              initial="enter"
+              animate="show"
+              exit="leave"
+            >
               {step === 0 && (
                 <form
                   className="flex flex-col gap-4"

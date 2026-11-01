@@ -5,7 +5,7 @@ import { fromLectureGuide } from '../lib/guides.js';
 import { createGuide } from './Guides.jsx';
 import { useApp, useLoad } from '../context.js';
 import { Button } from '../ui/Button.jsx';
-import { BackLink, Card, EmptyState, ModuleBadge, PageHeader, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { BackLink, Card, EmptyState, ModuleBadge, PageHeader, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
 
 export default function Guide({ materialId }) {
@@ -28,7 +28,7 @@ export default function Guide({ materialId }) {
     return () => observer.disconnect();
   }, [sections.length]);
 
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (error) return <ErrorState>{error}</ErrorState>;
   if (!material)
     return (
       <div className="flex flex-col gap-6">

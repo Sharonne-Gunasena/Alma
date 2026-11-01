@@ -5,7 +5,7 @@ import { ClipboardCheck, FileUp, Layers, Plus, Sparkles } from 'lucide-react';
 import { useApp, useLoad, go } from '../context.js';
 import { addCards, listDecks } from '../lib/data.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, EmptyState, ModuleBadge, PageHeader, ProgressRing, Skeleton, fadeUp } from '../ui/primitives.jsx';
+import { Card, EmptyState, ModuleBadge, PageHeader, ProgressRing, Skeleton, fadeUp, ErrorState } from '../ui/primitives.jsx';
 import { Field, Input, ModuleSelect } from '../ui/form.jsx';
 import { Modal } from '../ui/dialog.jsx';
 import { cn } from '../ui/cn.js';
@@ -83,7 +83,7 @@ export default function Decks() {
         </div>
       )}
 
-      {loadError && <p className="text-rose-600">{loadError}</p>}
+      {loadError && <ErrorState>{loadError}</ErrorState>}
 
       {!decks && !loadError ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -107,11 +107,21 @@ export default function Decks() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence initial={false}>
+          {/* popLayout: decks that stay slide into their new places while filtered-out ones fade. */}
+          <AnimatePresence initial={false} mode="popLayout">
             {shown.map((d, i) => {
               const pct = d.card_count ? d.mastered_count / d.card_count : 0;
               return (
-                <motion.div key={d.id} layout custom={i} variants={fadeUp} initial="hidden" animate="show" exit={{ opacity: 0, scale: 0.96 }}>
+                <motion.div
+                  key={d.id}
+                  layout
+                  custom={i}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="show"
+                  exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+                  transition={{ layout: { type: 'spring', bounce: 0, duration: 0.4 } }}
+                >
                   <Card as="a" href={`#/decks/${d.id}`} interactive className="group relative flex h-full flex-col gap-4 overflow-hidden p-5 text-fg no-underline">
                     {/* Stacked-cards decoration */}
                     <span className="absolute -top-3 -right-3 h-16 w-20 rotate-12 rounded-xl border border-line bg-subtle transition-transform duration-300 group-hover:rotate-[18deg]" />
@@ -178,17 +188,20 @@ export default function Decks() {
   );
 }
 
+// The dark selection pill slides between chips; the decks below rearrange to match.
 function Chip({ active, onClick, color, children }) {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        'flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-all',
-        active ? 'border-transparent bg-ink text-white shadow-card dark:bg-white dark:text-ink' : 'border-line bg-card text-muted hover:text-fg',
+        'relative flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-200',
+        active ? 'border-transparent text-white dark:text-ink' : 'border-line bg-card text-muted hover:text-fg',
       )}
     >
-      {color && <span className="size-2 rounded-full" style={{ background: color }} />}
-      {children}
+      {active && <motion.span layoutId="deck-filter" className="absolute inset-0 rounded-full bg-ink shadow-card dark:bg-white" transition={{ type: 'spring', bounce: 0, duration: 0.35 }} />}
+      {color && <span className="relative size-2 rounded-full" style={{ background: color }} />}
+      <span className="relative">{children}</span>
     </button>
   );
 }

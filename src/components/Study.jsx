@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ChevronLeft, Eye, FileText, Keyboard, Lightbulb, PenLine, RotateCcw, Sparkles, Trophy } from 'lucide-react';
+import { ChevronLeft, Eye, FileText, Keyboard, Lightbulb, PenLine, RotateCcw, Sparkles } from 'lucide-react';
 import { useApp } from '../context.js';
 import { describeInterval, isDue, schedule } from '../lib/srs.js';
 import { materialPages } from '../lib/data.js';
 import { activeAI } from '../ai/providers.js';
 import { CARD_TYPES } from '../ai/cardTypes.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, IconTile, Kbd, ProgressBar, Segmented, Skeleton } from '../ui/primitives.jsx';
+import { Card, IconTile, Kbd, ProgressBar, Segmented, Skeleton, ErrorState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
+import { useDraw } from '../ui/anim.js';
 
 const RATINGS = [
   { id: 'again', label: 'Again', key: '1', tone: 'text-rose-600 dark:text-rose-400', ring: 'hover:border-rose-300 dark:hover:border-rose-500/50', dot: 'bg-rose-500' },
@@ -192,7 +193,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (error) return <ErrorState>{error}</ErrorState>;
   if (!queue)
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -272,7 +273,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                 {/* Front: tap anywhere on the card to reveal (except while typing). */}
                 <Face hidden={flipped} flat={reduce} onReveal={typing ? undefined : () => setFlipped(true)}>
                   <Meta card={card} />
-                  <p className="text-center text-2xl font-semibold tracking-tight text-balance whitespace-pre-wrap sm:text-[26px]">{card.front}</p>
+                  <p className="text-center font-display text-[1.7rem] leading-snug font-medium text-balance whitespace-pre-wrap sm:text-[2rem]">{card.front}</p>
                   {typing ? (
                     <div className="flex flex-col gap-3">
                       <textarea
@@ -308,7 +309,7 @@ export default function Study({ deckId, mode = 'due', topic, moduleId }) {
                   <Meta card={card} />
                   <p className="text-center text-sm text-muted text-balance whitespace-pre-wrap">{card.front}</p>
                   <div className="mx-auto h-px w-16 bg-line" />
-                  <p className="text-center text-xl font-semibold tracking-tight text-balance whitespace-pre-wrap sm:text-2xl">{card.back}</p>
+                  <p className="text-center font-display text-[1.45rem] leading-snug font-medium text-balance whitespace-pre-wrap sm:text-[1.7rem]">{card.back}</p>
 
                   {grade && <GradeBox grade={grade} />}
                   {explanation && (
@@ -455,9 +456,9 @@ function SessionComplete({ tally, practice, backHref }) {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
       <Card className="flex flex-col items-center gap-5 px-6 py-12 text-center">
-        <IconTile icon={Trophy} tone="amber" size="lg" />
+        <DoneMark />
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{total ? 'Session complete' : 'Nothing to review'}</h1>
+          <h1 className="font-display text-[2.2rem] leading-tight font-medium">{total ? 'Session complete' : 'Nothing to review'}</h1>
           <p className="text-muted">{total ? (practice ? 'You went through every card.' : 'No more cards due right now. Come back tomorrow.') : 'No cards are due right now.'}</p>
         </div>
         {total > 0 && (
@@ -475,10 +476,24 @@ function SessionComplete({ tally, practice, backHref }) {
   );
 }
 
+// A pen ring closes around a tick (Anime.js draws both strokes).
+function DoneMark() {
+  const ref = useRef(null);
+  useDraw(ref, { duration: 800, stagger: 450 });
+  return (
+    <span className="grid size-16 place-items-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+      <svg ref={ref} viewBox="0 0 40 40" className="size-10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path data-draw d="M20 4.5C29 4.5 35.5 11 35.5 20S29 35.5 20 35.5 4.5 29 4.5 20 11.5 4 21.5 4.6" />
+        <path data-draw d="M13 20.5l5 5 9.5-11" />
+      </svg>
+    </span>
+  );
+}
+
 function Metric({ value, label }) {
   return (
     <div className="rounded-2xl bg-subtle px-3 py-3">
-      <p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
+      <p className="font-display text-[1.7rem] leading-tight font-medium tabular-nums">{value}</p>
       <p className="text-xs text-muted">{label}</p>
     </div>
   );

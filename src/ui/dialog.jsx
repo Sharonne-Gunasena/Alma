@@ -19,7 +19,7 @@ export function Modal({ open, onOpenChange, title, description, side, children, 
           <Dialog.Portal forceMount>
             <Dialog.Overlay asChild forceMount>
               <motion.div
-                className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-[2px]"
+                className="fixed inset-0 z-50 bg-ink/45 backdrop-blur-[3px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -38,12 +38,12 @@ export function Modal({ open, onOpenChange, title, description, side, children, 
                 )}
                 initial={sheet ? { x: '100%' } : { opacity: 0, scale: 0.96, y: '-46%', x: '-50%' }}
                 animate={sheet ? { x: 0 } : { opacity: 1, scale: 1, y: '-50%', x: '-50%' }}
-                exit={sheet ? { x: '100%' } : { opacity: 0, scale: 0.97, y: '-48%', x: '-50%' }}
-                transition={{ duration: 0.32, ease }}
+                exit={sheet ? { x: '100%', transition: { duration: 0.22, ease } } : { opacity: 0, scale: 0.97, y: '-48%', x: '-50%', transition: { duration: 0.16 } }}
+                transition={sheet ? { type: 'spring', bounce: 0, duration: 0.42 } : { duration: 0.3, ease }}
               >
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-2">
                   <div className="flex flex-col gap-1">
-                    <Dialog.Title className="text-lg font-semibold tracking-tight">{title}</Dialog.Title>
+                    <Dialog.Title className="font-display text-[1.45rem] leading-tight font-medium">{title}</Dialog.Title>
                     {description ? (
                       <Dialog.Description className="text-sm text-muted">{description}</Dialog.Description>
                     ) : (
@@ -139,7 +139,7 @@ export function Menu({ trigger, items, align = 'end' }) {
         <DropdownMenu.Content
           align={align}
           sideOffset={6}
-          className="z-50 min-w-48 rounded-2xl border border-line bg-card p-1.5 shadow-lift data-[state=open]:animate-[menu-in_160ms_ease-out]"
+          className="z-50 min-w-48 origin-[var(--radix-dropdown-menu-content-transform-origin)] rounded-2xl border border-line bg-card p-1.5 shadow-lift data-[state=open]:animate-[menu-in_180ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
         >
           {items.filter(Boolean).map((item, i) =>
             item === '-' ? (

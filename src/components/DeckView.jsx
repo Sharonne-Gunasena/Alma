@@ -8,7 +8,7 @@ import { addCards, MASTERED_DAYS } from '../lib/data.js';
 import { isDue } from '../lib/srs.js';
 import { CARD_TYPES } from '../ai/cardTypes.js';
 import { Button } from '../ui/Button.jsx';
-import { BackLink, Card, EmptyState, ModuleBadge, PageHeader, Pill, ProgressRing, Skeleton } from '../ui/primitives.jsx';
+import { BackLink, Card, EmptyState, ModuleBadge, PageHeader, Pill, ProgressRing, Skeleton, ErrorState } from '../ui/primitives.jsx';
 import { Field, Input, ModuleSelect, Textarea } from '../ui/form.jsx';
 import { Menu, Modal, useDialogs } from '../ui/dialog.jsx';
 
@@ -25,7 +25,7 @@ export default function DeckView({ deckId }) {
   const [sharing, setSharing] = useState(false);
   const { modules, user } = useApp();
 
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (error) return <ErrorState>{error}</ErrorState>;
   if (!data)
     return (
       <div className="flex flex-col gap-6">

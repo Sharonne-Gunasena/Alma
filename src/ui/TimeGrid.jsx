@@ -1,13 +1,18 @@
 // A week calendar: day columns, hour rows, and positioned blocks.
 // With onCreate, dragging on empty space (or tapping, on touch screens)
-// creates a block, snapped to 15 minutes.
+// creates a block, snapped to 15 minutes. The block being drawn follows the
+// pointer on a spring (React Spring), so each 15-minute snap glides instead
+// of jumping.
 import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { animated, useSpring } from '@react-spring/web';
 import { cn } from './cn.js';
+import { reducedMotion } from './anim.js';
 import { fromMinutes } from '../lib/time.js';
 
 const SNAP = 15;
 const PX = 0.9; // pixels per minute
+const FOLLOW = { tension: 520, friction: 36 }; // quick, with no overshoot past the snapped time
 
 export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60, onCreate, nowMin }) {
   const from = Math.floor(startMin / 60) * 60;
@@ -15,6 +20,8 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
   const height = (to - from) * PX;
   const [draft, setDraft] = useState(null);
   const drag = useRef(null);
+  const [box, boxApi] = useSpring(() => ({ y: 0, h: SNAP * PX }));
+  const place = (d, jump) => boxApi.start({ y: (d.start - from) * PX, h: Math.max(SNAP, d.end - d.start) * PX, immediate: jump || reducedMotion(), config: FOLLOW });
 
   const minuteAt = (e, el) => {
     const y = e.clientY - el.getBoundingClientRect().top;
@@ -31,14 +38,19 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
     }
     e.currentTarget.setPointerCapture(e.pointerId);
     drag.current = { col, start: m };
-    setDraft({ col, start: m, end: m + SNAP });
+    const d = { col, start: m, end: m + SNAP };
+    place(d, true);
+    setDraft(d);
   }
 
   function move(e) {
     if (!drag.current) return;
     const m = minuteAt(e, e.currentTarget);
     const { col, start } = drag.current;
-    setDraft({ col, start: Math.min(start, m), end: Math.max(start + SNAP, m) });
+    const d = { col, start: Math.min(start, m), end: Math.max(start + SNAP, m) };
+    if (d.start === draft?.start && d.end === draft?.end) return;
+    place(d);
+    setDraft(d);
   }
 
   function up() {
@@ -94,12 +106,12 @@ export function TimeGrid({ columns, blocks, startMin = 8 * 60, endMin = 20 * 60,
               </div>
             )}
             {draft?.col === ci && (
-              <div
-                className="pointer-events-none absolute inset-x-1 z-30 rounded-lg border-2 border-dashed border-indigo-400 bg-indigo-500/10 px-2 py-1 font-mono text-[11px] text-indigo-700 dark:text-indigo-300"
-                style={{ top: (draft.start - from) * PX, height: Math.max(SNAP, draft.end - draft.start) * PX }}
+              <animated.div
+                className="pointer-events-none absolute inset-x-1 top-0 z-30 rounded-lg border-2 border-dashed border-indigo-400 bg-indigo-500/10 px-2 py-1 font-mono text-[11px] text-indigo-700 shadow-[0_8px_20px_-10px_rgb(234_88_12/0.5)] dark:text-indigo-300"
+                style={{ transform: box.y.to((y) => `translateY(${y}px)`), height: box.h }}
               >
                 {fromMinutes(draft.start)}–{fromMinutes(draft.end)}
-              </div>
+              </animated.div>
             )}
           </div>
         ))}

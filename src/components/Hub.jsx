@@ -60,7 +60,7 @@ export default function Hub({ catalogId }) {
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
             <span className="w-fit rounded-full bg-white/20 px-2.5 py-0.5 font-mono text-xs font-medium backdrop-blur">{mod.code ?? 'Module'} hub</span>
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{mod.name}</h1>
+            <h1 className="font-display text-[2.1rem] leading-[1.08] font-medium sm:text-[2.6rem]">{mod.name}</h1>
             <p className="text-sm text-white/85">Decks and guides shared by students taking this module. Rate what helps; heavily downvoted items hide themselves.</p>
           </div>
           <Button onClick={() => setSharing(true)} className="bg-white text-slate-900 shadow-lg hover:bg-white/90">
