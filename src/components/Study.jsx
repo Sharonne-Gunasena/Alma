@@ -7,7 +7,7 @@ import { materialPages } from '../lib/data.js';
 import { activeAI } from '../ai/providers.js';
 import { CARD_TYPES } from '../ai/cardTypes.js';
 import { Button } from '../ui/Button.jsx';
-import { Card, IconTile, Kbd, ProgressBar, Segmented, Skeleton, ErrorState } from '../ui/primitives.jsx';
+import { Card, Kbd, ProgressBar, Segmented, Skeleton, ErrorState } from '../ui/primitives.jsx';
 import { cn } from '../ui/cn.js';
 import { useDraw } from '../ui/anim.js';
 

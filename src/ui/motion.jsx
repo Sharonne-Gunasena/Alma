@@ -1,5 +1,5 @@
 // Motion pieces shared across pages: masked text reveals, count-up numbers,
-// the cursor light for .spotlight, and scroll reveals.
+// the cursor light for .spotlight, and the background aurora.
 //
 // Rules: animate only transform and opacity (cheap for the GPU), never block
 // input, and respect "reduce motion". Pointer effects only run on devices
@@ -61,23 +61,6 @@ export function trackSpotlight(e) {
   const r = e.currentTarget.getBoundingClientRect();
   e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`);
   e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`);
-}
-
-// Fades and lifts into place the first time it scrolls into view.
-export function Reveal({ children, className, delay = 0, as = 'div', ...props }) {
-  const Comp = motion[as];
-  return (
-    <Comp
-      className={className}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '0px 0px -60px 0px' }}
-      transition={{ duration: 0.6, ease: EASE, delay }}
-      {...props}
-    >
-      {children}
-    </Comp>
-  );
 }
 
 // Slow-drifting colour light behind the page. Radial gradients moved with

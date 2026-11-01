@@ -18,8 +18,6 @@
 import { useLayoutEffect } from 'react';
 
 export const EASE = [0.22, 1, 0.36, 1];
-export const EASE_CSS = 'cubic-bezier(0.22, 1, 0.36, 1)';
-export const DURATION = { fast: 0.15, base: 0.25, slow: 0.45, intro: 0.7 };
 
 export const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
